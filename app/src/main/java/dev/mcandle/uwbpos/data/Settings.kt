@@ -1,5 +1,6 @@
 package dev.mcandle.uwbpos.data
 
+import android.bluetooth.le.AdvertisingSetParameters
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -76,8 +77,11 @@ class Settings(private val context: Context) {
 
     suspend fun current(): Snapshot = snapshot.first()
 
+    /** 범위 밖 값은 저장 전에 자른다 — `AdvertisingSetParameters.Builder` 가 IAE 를 던지지 않게 (constitution §5) */
     suspend fun setAdvertising(major: Int, minor: Int, txDbm: Int, intervalUnits: Int, txLevel: Int) = context.dataStore.edit {
-        it[K.MAJOR] = major; it[K.MINOR] = minor; it[K.TX_DBM] = txDbm; it[K.INTERVAL_UNITS] = intervalUnits; it[K.TX_LEVEL] = txLevel
+        it[K.MAJOR] = major.coerceIn(0, 0xFFFF); it[K.MINOR] = minor.coerceIn(0, 0xFFFF); it[K.TX_DBM] = txDbm.coerceIn(-128, 127)
+        it[K.INTERVAL_UNITS] = intervalUnits.coerceIn(AdvertisingSetParameters.INTERVAL_LOW, AdvertisingSetParameters.INTERVAL_MAX)
+        it[K.TX_LEVEL] = txLevel.coerceIn(AdvertisingSetParameters.TX_POWER_MIN, AdvertisingSetParameters.TX_POWER_MAX)
     }
     suspend fun setNonceTtl(s: Int) = context.dataStore.edit { it[K.NONCE_TTL_S] = s }
     suspend fun setLookupDelay(ms: Long) = context.dataStore.edit { it[K.LOOKUP_DELAY_MS] = ms }
@@ -93,6 +97,7 @@ class Settings(private val context: Context) {
         const val DEFAULT_MINOR: Int = 0x0101 // 1층 1번 (config.py:22)
         const val DEFAULT_TX_DBM: Int = -59
         const val DEFAULT_INTERVAL_UNITS: Int = 160 // 100 ms
-        const val DEFAULT_TX_LEVEL: Int = 3 // AdvertisingSetParameters.TX_POWER_HIGH
+        /** dBm. `AdvertisingSetParameters.setTxPowerLevel` 은 −127..1 dBm 을 받는다 — 레거시 `AdvertiseSettings` 의 0..3 enum 이 아니다 (3 을 넣으면 IAE "unknown txPowerLevel") */
+        const val DEFAULT_TX_LEVEL: Int = AdvertisingSetParameters.TX_POWER_HIGH // 1 dBm
     }
 }

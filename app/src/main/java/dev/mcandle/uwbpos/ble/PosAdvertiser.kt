@@ -122,13 +122,20 @@ class PosAdvertiser(
         current = params; payload = p
         _state.value = State.Starting
         log(Cat.ADV, null, "start 요청 iBeacon 23B major=${params.major} minor=${params.minor} tx=${params.txPowerDbm} — 상태는 콜백으로 확인", false)
-        val parameters = AdvertisingSetParameters.Builder()
-            .setLegacyMode(true)
-            .setConnectable(true)
-            .setScannable(true) // legacy + connectable 은 scannable 이어야 build 가 통과한다
-            .setInterval(params.intervalUnits.coerceAtLeast(AdvertisingSetParameters.INTERVAL_LOW))
-            .setTxPowerLevel(params.txPowerLevel)
-            .build()
+        // Builder 는 범위 밖 값에 IAE 를 던진다(txPowerLevel −127..1 dBm, interval ≤ INTERVAL_MAX) — 예외는 결과값으로 (constitution §5)
+        val parameters: AdvertisingSetParameters = runCatching {
+            AdvertisingSetParameters.Builder()
+                .setLegacyMode(true)
+                .setConnectable(true)
+                .setScannable(true) // legacy + connectable 은 scannable 이어야 build 가 통과한다
+                .setInterval(params.intervalUnits.coerceAtLeast(AdvertisingSetParameters.INTERVAL_LOW))
+                .setTxPowerLevel(params.txPowerLevel)
+                .build()
+        }.getOrElse { e ->
+            _state.value = State.Failed(-1, "파라미터 오류")
+            log(Cat.ERR, null, "AdvertisingSetParameters 오류 ${e.javaClass.simpleName}: ${e.message} (interval=${params.intervalUnits} txLevel=${params.txPowerLevel} dBm)", true)
+            return false
+        }
         val advData = AdvertiseData.Builder()
             .setIncludeDeviceName(false)
             .setIncludeTxPowerLevel(false)
