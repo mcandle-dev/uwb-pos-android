@@ -40,6 +40,43 @@ USB가 있으면 꽂기만 하면 된다. 무선이면 포트가 **두 종류**�
    `adb install`이 `more than one device/emulator`로 실패한다 → 하나를 `adb disconnect <IP>:<포트>`로 끊거나 모든 명령에 `-s <serial>`을 붙인다.
 4. 실패가 반복되면 `adb kill-server` 뒤 재시도. 페어링 포트·코드는 팝업을 열 때마다 새로 나온다.
 
+**복사용 예시** (2026-10-04 실제 값 — IP·포트·코드는 폰 화면의 것으로 바꾼다):
+
+```
+adb pair 192.168.45.28:36419 991161          # 페어링 팝업의 포트 + 6자리 코드  → Successfully paired to 192.168.45.28:36419
+adb connect 192.168.45.28:44983              # 무선 디버깅 메인 화면의 포트     → connected to 192.168.45.28:44983
+adb devices -l                               # device 상태 1줄이면 준비 끝
+adb install -r app\build\outputs\apk\debug\app-debug.apk   # Performing Streamed Install / Success
+```
+
+### 1-1. `adb.exe: more than one device/emulator` 가 나올 때
+
+```
+PS D:\dev\mcandle\uwb-pos-android> adb install -r app\build\outputs\apk\debug\app-debug.apk
+adb.exe: more than one device/emulator
+```
+
+같은 폰이 **두 번 등록**된 것이다 — 페어링된 폰은 mDNS로 자동 연결되고(`adb-R3CM40BQ0AJ-ombROn._adb-tls-connect._tcp`), 거기에 수동 `adb connect` 까지 하면 IP:포트 항목이 하나 더 생긴다.
+
+```
+adb devices -l
+# 192.168.45.28:44983                              device product:beyondxks model:SM_G977N …
+# adb-R3CM40BQ0AJ-ombROn._adb-tls-connect._tcp     device product:beyondxks model:SM_G977N …
+```
+
+해결 둘 중 하나:
+
+```
+# (a) 수동 연결 항목을 끊는다 — 이후 명령은 그대로
+adb disconnect 192.168.45.28:44983
+adb install -r app\build\outputs\apk\debug\app-debug.apk
+
+# (b) 끊지 않고 모든 명령에 대상을 지정한다
+adb -s adb-R3CM40BQ0AJ-ombROn._adb-tls-connect._tcp install -r app\build\outputs\apk\debug\app-debug.apk
+```
+
+mDNS 항목이 사라지고 IP:포트만 남는 경우도 있다 — 그때는 남은 쪽을 `-s` 에 쓰면 된다. 폰의 무선 디버깅을 껐다 켜면 연결 포트가 바뀌므로 `adb connect` 를 다시 한다.
+
 ### 2. 설치·실행·확인
 
 ```
