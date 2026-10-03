@@ -28,3 +28,18 @@ Android에는 연결 이벤트가 있어 **연결 즉시** 세션이 생기고 �
 
 핸들러가 `sendResponse`를 안 한 것이다 (시뮬레이터 FAQ Q9와 같은 증상). 이 앱은 모든 요청 경로와 예외 경로에서 응답하도록 돼 있으므로, 나오면 결함이다 —
 Activity Log ERR과 함께 보고한다. 디스크립터 READ(CCCD 읽기)·`onExecuteWrite`도 응답 대상이다.
+
+## Q6. 손님 앱은 MTU 185를 요청하는데 POS에는 `MTU 512`가 찍힌다
+
+**정상이다.** Android 14부터 central의 `requestMtu(n)`은 n과 무관하게 **517**로 교환 요청을 보내고, 서버 쪽 스택이 자기 최대값으로 응답한다(SM-G977N·Android 12 → 512).
+손님 앱 로그에는 `mtu=512`가, POS에는 `GATT A1 MTU 512`가 남는다. NOTIFY 한도는 MTU−3 = 509B라 result 120B는 항상 한 번에 간다.
+`MTU 23`(요청 안 함·실패)만 문제다 — 그때는 ERR `result 63B > notify 한도 20B` 와 함께 폰이 READ로 받는다.
+
+## Q7. 수신 이벤트가 "조회 중…"에서 멈추고 events CSV `result` 열이 비어 있다
+
+2026-10-03 T14 이전 빌드의 결함이다. `EventsCsv.Received`가 `equals`를 (wallMs, sessionKey, raw)로 재정의해, 조회 결과만 바뀐 행을 `MutableStateFlow`가 같은 값으로 보고 버렸다.
+고친 뒤에는 LOOK 줄과 동시에 행 3줄째에 `success · 김**트 · notify 63B`가 뜬다. **StateFlow에 넣는 data class의 `equals`를 좁히지 말 것.**
+
+## Q8. logcat 으로 Activity Log 를 볼 때 ERR 줄이 안 보인다
+
+`ActivityLog.add(bad=true)` 는 `Log.w`, 나머지는 `Log.i` 로 나간다. `grep "I PosActivity"` 처럼 레벨까지 걸면 ERR 가 빠진다 — `grep PosActivity` 만 쓰거나 저장 파일(`pos_*.txt`)을 본다 (2026-10-04 S10 에서 ERR 0x80 줄을 놓칠 뻔했다).

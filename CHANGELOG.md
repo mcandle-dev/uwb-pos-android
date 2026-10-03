@@ -3,6 +3,37 @@
 동작이 바뀌면 여기에 적는다 (constitution §10). 설계가 바뀌면 `docs/ARCHITECTURE.md`도 함께 고친다.
 **"Verified"는 실기기(POS 폰 + 손님 앱 폰)로 확인한 것만** 쓴다 (constitution §7).
 
+## 2026-10-03 — T14 3패널 화면 · events `result` 열이 비던 결함 수정 (실기기 SM-G977N)
+
+### Added
+- `ui/MainScreen.kt`·`ui/MainViewModel.kt` — `specs/001-android-pos/ui-mockup.html` 그대로. 한 `LazyColumn` 에 ① 광고 제어(배지 3개 · 접이식 광고 설정 6칸 · 시작/광고 중지/저장·공유 · 카운터 · 사이클 줄 · 송출 패킷 raw · 디버그 카드[DEBUG]) → ② 연결 중인 폰(세션 · 멤버 ID+주소+연결 시각 · UWB · MTU/구독) → ③ sticky 탭(수신 이벤트 3줄 행 + 탭 상세 raw 16B 필드색 / Activity Log 가로 스크롤·자동 스크롤).
+  ERR 줄은 스낵바로도. 31+ 권한 없으면 빨간 줄 + "허용". `MainActivity` 는 권한 런처와 액션 바인딩만.
+- `ui-mockup.html` — 시뮬레이터 목업 토큰·배치, Android 차이(MTU·구독·주소·사이클·Flags 점선) 주석.
+
+### Fixed
+- **events CSV `result` 열이 항상 비었다.** `EventsCsv.Received` 가 `equals` 를 (wallMs, sessionKey, raw) 로 재정의해 `EventsStore.replace`(조회 결과 채우기)가 만든 목록을 `MutableStateFlow` 가 "같은 값" 으로 보고 버렸다. 재정의 삭제 (실기기 23:06~23:31 5건 모두 `result` 빈칸으로 확인).
+
+### Verified (SM-G977N ↔ 손님 앱 SM-S928N, 23:26·23:31 두 번)
+- `CONN A1 connected` → `MTU 512` → `result notify 구독` → `NONCE read` → `write 16B member=1111222200 … 수락 (발급 후 0.086s)` → `LOOK … notified=true` → `disconnected · 세션 폐기`. elapsed 0.80 s. **S1 판정은 손님 앱 CSV(`규칙 ①`) 를 받은 뒤** (device-tests §4).
+- **S1 통과** (10-04 00:05, nonce 116FC840, PC 시뮬레이터 OFF): 손님 앱 `조기 종료 0.5s · 기기 1` → `select 규칙 ① · rssi -54` → `mtu 512` → `cccd` → `nonce` → `write_ack 0 ACK` → `result notify 63B` → `done OK 2095ms · success`. POS `OK` elapsed 0.775 s, `result`·`adv_started_at` 열 채워짐. 손님 폰 시계 +0.75 s.
+  (23:48 첫 run 은 시뮬레이터가 켜져 있어 손님 앱 스캔이 `3.0s · 기기 3` — 그래도 규칙 ①로 이 POS 를 골랐다.)
+- **S2 통과** (10-04 00:14 D1 OFF 60 s 화면 ON · 00:18 E1 OFF 10 s 화면 OFF): 손님 앱 `wake FIRST_MATCH … LOW_POWER/STICKY` → 자동 전송 OK. POS `adv_to_write_s` 2.528 / 3.067, 손님 앱 `wake_to_ack_ms` 2002 / 2062 → **감지 지연 0.53 / 1.05 s**. 시계 오프셋 +0.62 s. 수동 중지/시작은 새 set = 새 주소(손님 앱 `detect` 주소가 run 마다 다름) — D-005 근거.
+- **S9 통과** (00:27 G1): `uwb=미지원`, raw `[6..7]=00 00`, 조회·NOTIFY 수행. **S10 통과** (00:27 H1): `ERR write 16B 거부 0x80: 불일치 — 기대 F61FFDD0, 수신 00000000` → 손님 앱 `write_reject 128` → 재READ → `수락 (재시도 1/1)`. events `불일치`+`OK` 2행.
+- **주소 회전 첫 관측** (00:26 F1): set 생성 8분 뒤 RPA 가 바뀌어 손님 앱이 새 주소에 `FIRST_MATCH` 로 깨어나 재전송, 옛 주소는 `MATCH_LOST`. D-004 예상대로 — P2·손님 앱 005 자료.
+- (수정 뒤 발견) `EventsStore.replace` 가 행 전체를 바꿔 `adv_started_at`·`cycle` 이 사라졌다 → `resultJson` 만 병합. `EventsStoreTest` 3건 추가.
+- MTU 는 185 가 아니라 **512** — 손님 앱이 185 를 요청해도 Android 14+ 스택은 517 을 보내고 서버가 512 로 응답한다 (FAQ Q6).
+
+## 2026-10-03 — 첫 "시작" 크래시 수정: txPowerLevel 단위 혼동 (실기기 SM-G977N · Android 12)
+
+### Fixed
+- `Settings.DEFAULT_TX_LEVEL` 이 `3`(레거시 `AdvertiseSettings` 0..3 enum)이라 `AdvertisingSetParameters.Builder.setTxPowerLevel` 이 `IllegalArgumentException: unknown txPowerLevel 3` 을 던지고
+  프로세스가 죽었다(광고 자체가 안 나감). → `AdvertisingSetParameters.TX_POWER_HIGH`(1 dBm). `setAdvertising` 은 저장 전에 범위를 자른다(interval 160..INTERVAL_MAX, txLevel −127..1).
+- `PosAdvertiser.start` 의 `AdvertisingSetParameters.Builder` 체인이 `runCatching` 밖에 있었다(constitution §5 위반). 이제 Builder 예외도 `State.Failed("파라미터 오류")` + ERR 로그로 끝난다.
+
+### Verified (SM-G977N, Android 12)
+- 재설치(`install -r`) → `MY_PACKAGE_REPLACED` → `PosService` FGS 기동 → GATT 서버 등록 → `onAdvertisingSetStarted(0, txPower=-2)` → Activity Log `ADV publisher started … tx -2 dBm, interval 160×0.625ms`.
+  "시작" 을 누르지 않아도 광고가 올라온다 (P3 PACKAGE_REPLACED 경로). 요청 1 dBm 에 스택은 −2 dBm 으로 응답.
+
 ## 2026-10-03 — spec 001 bring-up 빌드: 광고 + GATT 서버 + 세션·nonce + 로그 + FGS (실기기 미확인)
 
 전부 정적 검토·JVM 단위 테스트 55개·`assembleDebug`·lint 0 errors 까지 — **Verified 아님**. 실기기 절차는 `specs/001-android-pos/device-tests.md`.

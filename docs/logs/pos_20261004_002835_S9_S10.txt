@@ -1,0 +1,76 @@
+23:58:30.669  GATT  —   service advertising started — 3 chars (nonce/payload/result), connectable
+23:58:30.681  ADV   —   start 요청 iBeacon 23B major=1 minor=257 tx=-59 — 상태는 콜백으로 확인
+23:58:30.702  ADV   —   publisher started (AdvertisingSet 콜백 확인) — on-air 30B, Flags 스택, connectable, tx -2 dBm, interval 160×0.625ms
+23:58:49.277  CONN  A1  connected 5B:DA:0F:71:F2:24 · 세션 생성
+23:58:49.988  GATT  A1  MTU 512
+23:58:50.036  GATT  A1  result notify 구독
+23:58:50.158  NONCE A1  read → 4BA29C87 (ttl 30s)
+23:58:50.184  GATT  A1  write 16B member=1111222200 uwb=81:5A nonce=4BA29C87 → 수락 (nonce 일치 (발급 후 0.091s))
+23:58:50.276  LOOK  A1  lookup → {"v":1,"status":"success","member":"김**트","message":"mock"} (66.0 ms) · notified=true
+23:58:51.463  CONN  A1  disconnected · 세션 폐기
+00:03:42.825  GATT  —   자동 저장 → events_20261004_000342.csv · pos_20261004_000342.txt
+00:05:54.870  CONN  B1  connected 76:18:C6:A9:E1:40 · 세션 생성
+00:05:55.512  GATT  B1  MTU 512
+00:05:55.573  GATT  B1  result notify 구독
+00:05:55.605  NONCE B1  read → 116FC840 (ttl 30s)
+00:05:55.673  GATT  B1  write 16B member=1111222200 uwb=80:2E nonce=116FC840 → 수락 (nonce 일치 (발급 후 0.070s))
+00:05:55.757  LOOK  B1  lookup → {"v":1,"status":"success","member":"김**트","message":"mock"} (55.0 ms) · notified=true
+00:05:56.937  CONN  B1  disconnected · 세션 폐기
+00:08:49.877  GATT  —   자동 저장 → events_20261004_000849.csv · pos_20261004_000849.txt
+00:10:55.501  CONN  C1  connected 77:E0:36:26:27:4B · 세션 생성
+00:10:56.162  GATT  C1  MTU 512
+00:10:56.210  GATT  C1  result notify 구독
+00:10:56.267  NONCE C1  read → 2EB58970 (ttl 30s)
+00:10:56.343  GATT  C1  write 16B member=1111222200 uwb=04:59 nonce=2EB58970 → 수락 (nonce 일치 (발급 후 0.076s))
+00:10:56.420  LOOK  C1  lookup → {"v":1,"status":"success","member":"김**트","message":"mock"} (52.0 ms) · notified=true
+00:10:57.581  CONN  C1  disconnected · 세션 폐기
+00:13:50.133  ADV   —   stop 요청 (set 종료)
+00:13:50.143  ADV   —   publisher stopped (set 종료)
+00:13:56.151  GATT  —   자동 저장 → events_20261004_001356.csv · pos_20261004_001356.txt
+00:14:49.853  ADV   —   start 요청 iBeacon 23B major=1 minor=257 tx=-59 — 상태는 콜백으로 확인
+00:14:49.897  ADV   —   publisher started (AdvertisingSet 콜백 확인) — on-air 30B, Flags 스택, connectable, tx -2 dBm, interval 160×0.625ms
+00:14:51.690  CONN  D1  connected 40:29:73:4E:1C:D8 · 세션 생성
+00:14:51.757  EVENTS —   cleared 3 rows
+00:14:52.347  GATT  D1  MTU 512
+00:14:52.370  GATT  D1  result notify 구독
+00:14:52.405  NONCE D1  read → 2DA73FA6 (ttl 30s)
+00:14:52.436  GATT  D1  write 16B member=1111222200 uwb=FB:58 nonce=2DA73FA6 → 수락 (nonce 일치 (발급 후 0.034s))
+00:14:52.506  LOOK  D1  lookup → {"v":1,"status":"success","member":"김**트","message":"mock"} (53.0 ms) · notified=true
+00:14:53.715  CONN  D1  disconnected · 세션 폐기
+00:18:13.347  ADV   —   stop 요청 (set 종료)
+00:18:13.355  ADV   —   publisher stopped (set 종료)
+00:18:23.859  ADV   —   start 요청 iBeacon 23B major=1 minor=257 tx=-59 — 상태는 콜백으로 확인
+00:18:23.903  ADV   —   publisher started (AdvertisingSet 콜백 확인) — on-air 30B, Flags 스택, connectable, tx -2 dBm, interval 160×0.625ms
+00:18:26.198  CONN  E1  connected 54:DA:2C:86:37:CC · 세션 생성
+00:18:26.862  GATT  E1  MTU 512
+00:18:26.902  GATT  E1  result notify 구독
+00:18:26.941  NONCE E1  read → 6CD18C54 (ttl 30s)
+00:18:26.992  GATT  E1  write 16B member=1111222200 uwb=95:E3 nonce=6CD18C54 → 수락 (nonce 일치 (발급 후 0.055s))
+00:18:27.070  LOOK  E1  lookup → {"v":1,"status":"success","member":"김**트","message":"mock"} (54.0 ms) · notified=true
+00:18:28.271  CONN  E1  disconnected · 세션 폐기
+00:18:50.893  GATT  —   수동 저장 → events_20261004_001850.csv · pos_20261004_001850.txt
+00:23:23.978  GATT  —   자동 저장 → events_20261004_002323.csv · pos_20261004_002323.txt
+00:26:28.535  CONN  F1  connected 7B:C6:1F:36:DA:51 · 세션 생성
+00:26:29.185  GATT  F1  MTU 512
+00:26:29.234  GATT  F1  result notify 구독
+00:26:29.288  NONCE F1  read → 96BDFF2C (ttl 30s)
+00:26:29.369  GATT  F1  write 16B member=1111222200 uwb=27:A0 nonce=96BDFF2C → 수락 (nonce 일치 (발급 후 0.078s))
+00:26:29.460  LOOK  F1  lookup → {"v":1,"status":"success","member":"김**트","message":"mock"} (53.0 ms) · notified=true
+00:26:30.600  CONN  F1  disconnected · 세션 폐기
+00:27:30.212  CONN  G1  connected 78:6C:B8:2C:51:E9 · 세션 생성
+00:27:30.838  GATT  G1  MTU 512
+00:27:30.876  GATT  G1  result notify 구독
+00:27:30.906  NONCE G1  read → 9F6B35A3 (ttl 30s)
+00:27:30.970  GATT  G1  write 16B member=1111222200 uwb=미지원 nonce=9F6B35A3 → 수락 (nonce 일치 (발급 후 0.064s))
+00:27:31.051  LOOK  G1  lookup → {"v":1,"status":"success","member":"김**트","message":"mock"} (52.0 ms) · notified=true
+00:27:32.221  CONN  G1  disconnected · 세션 폐기
+00:27:52.651  CONN  H1  connected 7D:C5:29:17:61:F3 · 세션 생성
+00:27:53.331  GATT  H1  MTU 512
+00:27:53.370  GATT  H1  result notify 구독
+00:27:53.401  NONCE H1  read → F61FFDD0 (ttl 30s)
+00:27:53.439  ERR   H1  write 16B 거부 0x80: 불일치 — 기대 F61FFDD0, 수신 00000000
+00:27:53.486  NONCE H1  read → 43FCB48B (ttl 30s)
+00:27:53.567  GATT  H1  write 16B member=1111222200 uwb=미지원 nonce=43FCB48B → 수락 (nonce 일치 (발급 후 0.072s))
+00:27:53.641  LOOK  H1  lookup → {"v":1,"status":"success","member":"김**트","message":"mock"} (52.0 ms) · notified=true
+00:27:54.810  CONN  H1  disconnected · 세션 폐기
+00:28:02.532  GATT  —   수동 저장 → events_20261004_002802.csv · pos_20261004_002802.txt

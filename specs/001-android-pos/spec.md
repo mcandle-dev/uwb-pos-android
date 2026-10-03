@@ -100,10 +100,10 @@ ui-mockup(T5)이 진실원천. ① 광고 제어·상태 ② 연결 중인 폰 �
 
 로그 세 벌(POS events·Activity Log + 손님 앱 CSV)을 양쪽 `docs/logs/`에 남기고 nonce로 짝짓는다.
 
-- [ ] **S1** 손님 앱 수동 전송 → 세션·nonce·write 수락·LOOK·NOTIFY. 손님 앱 CSV `select 규칙 ①`
-- [ ] **S2** 광고 중지→시작 뒤 손님 앱 자동 발화 → OK, events `adv_to_write_s` 기록
-- [ ] **S9** UWB 미지원(손님 앱 디버그 토글) → `uwb=미지원`, 조회 수행
-- [ ] **S10** 손님 앱 잘못된 nonce → `불일치` 0x80 → 재READ 수락. events 2행
+- [x] **S1** 손님 앱 수동 전송 → 세션·nonce·write 수락·LOOK·NOTIFY. 손님 앱 CSV `select 규칙 ①` — 2026-10-04 SM-G977N ↔ SM-S928N, nonce 116FC840, 조기 종료 0.5s·기기 1 (device-tests §2)
+- [x] **S2** 광고 중지→시작 뒤 손님 앱 자동 발화 → OK, events `adv_to_write_s` 기록 — 2026-10-04 D1·E1, 감지 지연 0.53/1.05 s (device-tests §2)
+- [x] **S9** UWB 미지원(손님 앱 디버그 토글) → `uwb=미지원`, 조회 수행 — 2026-10-04 G1
+- [x] **S10** 손님 앱 잘못된 nonce → `불일치` 0x80 → 재READ 수락. events 2행 — 2026-10-04 H1
 - [ ] **S12** 폰 2대 동시 → 세션 2개·nonce 독립·NOTIFY 각자
 - [ ] **P1** 폰 1 연결 중 2번째 스캐너가 POS를 본다 (연결 중 광고 유지)
 - [ ] **P3** 재부팅·BT OFF→ON 뒤 광고 배지 복귀, 손님 앱 발화
