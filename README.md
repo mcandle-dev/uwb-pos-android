@@ -28,4 +28,4 @@ Windows: `.\gradlew.bat …`. `adb`는 `%LOCALAPPDATA%\Android\Sdk\platform-tool
 
 ## 현재 상태
 
-**spec 001 — 골격 (T0).** 리포·문서·Gradle·매니페스트·빈 앱. 광고·GATT 서버는 T2부터. 실기기 검증 전 — Acceptance 전부 미체크.
+**spec 001 — bring-up 빌드 (T0~T13 중 T10·T14·T15 제외).** 광고(AdvertisingSet)·GATT 서버(CCCD·NOTIFY·0x80/0x81/0x0E)·세션·nonce·mock 조회·FGS·BT 토글·부팅·Activity Log·events CSV·저장/공유가 들어 있고 화면은 bring-up 판(시작/중지/저장·세션·로그). 3패널 화면(T14)과 사이클 실행기(T15)는 다음. **실기기 검증 전 — Acceptance 전부 미체크.** 첫 시험은 `specs/001-android-pos/device-tests.md` S1.
