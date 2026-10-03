@@ -22,7 +22,7 @@ spec: [spec.md](spec.md) · plan: [plan.md](plan.md) · 승인 2026-10-03. 완�
 - [x] T7. `pos/SessionRegistry.kt`(address→Session, open/close/label 카운터) · `pos/PosEngine.kt`(`evaluateWrite` → 응답 코드·Received, `afterAccept` → lookup·resultJson·notify 판단 `shouldNotify(mtu)`) — BLE 객체 없음, JVM 테스트 `PosEngineTest`(평가 순서·응답 코드·mtu 가드) (7672d96)
 - [x] T8. `ble/PosGattServer.kt` — `open()`(서비스+CCCD, `onServiceAdded` 대기), 콜백→Channel→소비 코루틴, 모든 요청 `sendResponse`, long read, CCCD, `onMtuChanged`, notify(API 33 분기, `onNotificationSent` 대기), 예외→0x0E, `close()`. 출처 주석(`_reference_console/.../GattServerBleOobChannel.kt:201-235,389-395`) (7672d96)
 - [x] T9. `ble/PosAdvertiser.kt` — `AdvertisingSet` legacy/connectable/scannable/160/tx, AD manufacturer 23B, ScanRsp 서비스 UUID, 상태 Flow, `enable(bool)`, `stop()`. 연결 콜백에서 set 불변(D-007 토글만 재enable) (7672d96)
-- [ ] T10. 임시 `MainActivity` 시작/중지 버튼 + Logcat → **nRF Connect**: nonce READ 4B · 16B WRITE 수락/0x80/0x81 · CCCD 구독 → NOTIFY · result READ offset · CCCD READ → **손님 앱 S1**: `select 규칙 ①`, `write_ack 0`, result notify 63B. (실기기 — 사용자)
+- [~] T10. 임시 `MainActivity` 시작/중지 버튼 + Logcat → **nRF Connect**(P4 로 이월): nonce READ 4B · 16B WRITE 수락/0x80/0x81 · CCCD 구독 → NOTIFY · result READ offset · CCCD READ → **손님 앱 S1**: `select 규칙 ①`, `write_ack 0`, result notify 63B — **손님 앱 S1 통과** 2026-10-04 (6d56b03). nRF 단독 확인은 T21 P4
 
 ## 3. 수명
 
@@ -35,11 +35,11 @@ spec: [spec.md](spec.md) · plan: [plan.md](plan.md) · 승인 2026-10-03. 완�
 
 ## 5. 화면
 
-- [x] T14. `ui/MainViewModel.kt`(UiState: 광고/GATT 배지·세션 목록·events·로그·설정·사이클 진행·권한) · `ui/MainScreen.kt` 3패널(FR-17~20) · 디버그 카드 · `ui-mockup.html`(시뮬레이터 토큰, 3패널 폰 프레임) — 실기기 SM-G977N 화면 확인(스크린샷). 사이클 "실행" 은 T15 전까지 ERR 로그 1줄
+- [x] T14. `ui/MainViewModel.kt`(UiState: 광고/GATT 배지·세션 목록·events·로그·설정·사이클 진행·권한) · `ui/MainScreen.kt` 3패널(FR-17~20) · 디버그 카드 · `ui-mockup.html`(시뮬레이터 토큰, 3패널 폰 프레임) — 실기기 SM-G977N 화면 확인(스크린샷) (10f0833)
 
 ## 6. 사이클
 
-- [x] T15. `trial/CycleRunner.kt`(enableAdvertising OFF/ON, `onAdvertisingEnabled` ≤10초, 예외·미도달 중단, `CYCLE k/N stop|start` 로그, 요약, late write) · cycles CSV · 종료 시 세 파일 자동 저장 · ① 패널 사이클 줄 — `CycleRunnerTest` 5건, 실기기 10회 완주 2026-10-04 00:49~00:59 (`_CYC`)
+- [x] T15. `trial/CycleRunner.kt`(enableAdvertising OFF/ON, `onAdvertisingEnabled` ≤10초, 예외·미도달 중단, `CYCLE k/N stop|start` 로그, 요약, late write) · cycles CSV · 종료 시 세 파일 자동 저장 · ① 패널 사이클 줄 — `CycleRunnerTest` 5건, 실기기 10회 완주 2026-10-04 00:49~00:59 (`_CYC`) (311980b)
 
 ## 7. 권한
 
@@ -49,11 +49,11 @@ spec: [spec.md](spec.md) · plan: [plan.md](plan.md) · 승인 2026-10-03. 완�
 
 - [x] T17. `specs/001-android-pos/device-tests.md` — §0 준비(POS 폰·손님 앱 폰·nRF Connect·adb), §1 S1·S2·S9·S10·S12·P1·P3·P4·P5·P2, §2 pair_logs 표, §3 상대에 넘길 것, §4 보고 양식 (7672d96)
 - [ ] T18. `protocol-auditor`(Peripheral 판) 실행 · lint 0 errors · 정적 검토(모든 콜백 경로 sendResponse, `characteristic.value` 미사용, set stop/start 호출 지점 = 수동 버튼뿐, `_reference_console` diff 0)
-- [ ] T19. `/wrap-up` — CHANGELOG · ARCHITECTURE · FAQ · spec 상태 "구현 완료 · 실기기 대기"
+- [x] T19. `/wrap-up` — CHANGELOG · ARCHITECTURE · FAQ · spec 상태 "구현 완료 · 실기기 검증 중" (2026-10-04 wrap-up)
 
 ## 실기기 확인 후 (사용자)
 
-- [ ] T20. S1·S2·S9·S10·S12 손님 앱 상대 — 로그 세 벌 양쪽 `docs/logs/`
+- [~] T20. S1·S2·S9·S10·S12 손님 앱 상대 — 로그 세 벌 양쪽 `docs/logs/` — S1·S2·S9·S10 완료 (6d56b03), 사이클 `_CYC`·`_CYC2` (55fc30d·ad24343). S12 남음
 - [ ] T21. P1 연결 중 광고 유지(2번째 스캐너) · P3 재부팅/BT 토글 · P4 nRF Connect 거부 코드 · P5 pair_logs 실행
 - [ ] T22. P2 24h 주소 회전 관측 → 상대 PR(PROTOCOL §2-1 Flags·§2-3 표·§4-1 주소 부기·FAQ Q11·Q12) · 손님 앱 `specs/005-android-pos-verify` 착수
 - [ ] T23. spec Acceptance 체크 + 상태 "완료"

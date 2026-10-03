@@ -72,8 +72,11 @@ onConnectionStateChange(DISCONNECTED)   → NonceStore.drop · session 폐기 ·
 모든 콜백은 `Channel`로 하나의 코루틴에 직렬화된다. 핸들러 예외 → `sendResponse(0x0E)` + ERR.
 
 ### 4-3. 사이클
-`CyclePlan`(stop→start × N) → `CycleRunner`: OFF = `enableAdvertising(false)`(adv_started_wall=null) → OFF s → ON = `enableAdvertising(true)` →
-`onAdvertisingEnabled` ≤10초 대기(미도달 → ERR 중단) → ON s. 각 단계 `CYCLE k/N stop|start` 로그. 끝나면 요약 + 세 파일 자동 저장.
+`CyclePlan`(stop→start × N) → `CycleRunner`(BLE 모름, `doStop`/`doStart`/`waitStarted` 주입): OFF = `enableAdvertising(false)`(adv_started_wall=null) → OFF s →
+ON = `enableAdvertising(true)` → `onAdvertisingEnabled(true)` 가 start 요청 시각 이후에 오기를 ≤10초 대기(미도달 → ERR 중단, 재시도 없음) → ON s.
+각 단계 `CYCLE k/N stop|start` 로그(`pair_logs.py` 가 센다). `PosService` 가 `ACTION_CYCLE_START/STOP` 으로 돌리고 1초마다 `Status.cycle`(진행) publish.
+끝나면 `CYCLE done k/N · writes W · no-write [...]` + events·cycles·pos 세 파일 저장. 디버그 D-005 토글이면 OFF/ON 을 `stop()`/`startAll()` 로(새 set = 새 주소 — 비교용).
+**실측(2026-10-04)**: 같은 주소 OFF/ON 에는 손님 폰이 깨어나지 않는다(FAQ Q9) — 사이클 매트릭스는 손님 앱 005 뒤.
 
 ### 4-4. BT 토글·부팅
 `BtStateWatcher`(FGS 안 동적 `ACTION_STATE_CHANGED`): OFF → 서버·set 무효(배지 "BT 꺼짐"), ON → 1초 뒤 `open()`→재광고.
@@ -101,7 +104,7 @@ UI는 `StateFlow` 관찰만. 파일 I/O는 `Dispatchers.IO`.
 | 세션·nonce·result | 메모리(`SessionRegistry`) | 끊기면 폐기. 저장 안 함 |
 | Activity Log | 메모리 2000줄 → `files/logs/pos_*.txt` | 시뮬레이터 줄 형식 |
 | events | 메모리 목록 → `files/logs/events_*.csv` | 17열, 지우기는 로그 1행 |
-| cycles | `files/logs/cycles_*.csv` | |
+| cycles | `TrialState.rows` → `files/logs/cycles_*.csv` | 사이클 종료·5분 자동 저장(행이 있을 때) |
 
 ## 8. 권한과 매니페스트
 REQUIREMENTS FR-23 매트릭스. `BLUETOOTH_SCAN`·위치·배터리 예외 없음. FGS `connectedDevice`. `BootReceiver` 2액션. FileProvider.

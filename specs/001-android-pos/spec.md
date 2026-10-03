@@ -1,6 +1,6 @@
 # Spec 001 — Android POS: iBeacon 광고 + GATT 서버 (시뮬레이터 동등)
 
-- **상태**: **승인됨 · 구현 중** (2026-10-03 — 계획 승인과 함께. T0 골격)
+- **상태**: **구현 완료 · 실기기 검증 중** (2026-10-04 — T0~T15 코드 완료. S1·S2·S9·S10·사이클 통과, S12·P1~P5 남음)
 - **관련**: [docs/REQUIREMENTS.md](../../docs/REQUIREMENTS.md) §5·§7·§9, [docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md),
   손님 앱 `uwb-member-app` specs 002~004(시뮬레이터 상대 실측과 미결), 시뮬레이터 `uwb-pos-simulator` specs 001·002(대체 대상)
 - **화면 가이드**: [ui-mockup.html](ui-mockup.html) (T5)

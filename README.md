@@ -64,4 +64,6 @@ adb logcat -v time > logcat.txt                                                 
 
 ## 현재 상태
 
-**spec 001 — bring-up 빌드 (T0~T13 중 T10·T14·T15 제외).** 광고(AdvertisingSet)·GATT 서버(CCCD·NOTIFY·0x80/0x81/0x0E)·세션·nonce·mock 조회·FGS·BT 토글·부팅·Activity Log·events CSV·저장/공유가 들어 있고 화면은 bring-up 판(시작/중지/저장·세션·로그). 3패널 화면(T14)과 사이클 실행기(T15)는 다음. **실기기 검증 전 — Acceptance 전부 미체크.** 첫 시험은 `specs/001-android-pos/device-tests.md` S1.
+**spec 001 — 구현 완료 · 실기기 검증 중 (2026-10-04).** 광고(AdvertisingSet)·GATT 서버(CCCD·NOTIFY·0x80/0x81/0x0E)·세션·nonce·mock 조회·FGS·BT 토글·부팅·
+Activity Log·events/cycles CSV·3패널 화면·사이클 실행기까지 들어 있다. SM-G977N(Android 12) ↔ 손님 앱 SM-S928N 으로 **S1·S2·S9·S10·사이클 통과**.
+남은 실기기 항목은 S12·P1·P3·P4·P5·P2 (`specs/001-android-pos/device-tests.md`). 실측으로 드러난 것: 같은 주소 재진입은 손님 폰이 못 본다(FAQ Q9), RPA 회전 ≤8~13분.

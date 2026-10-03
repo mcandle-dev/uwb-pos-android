@@ -39,30 +39,38 @@ app/                 단일 모듈 Kotlin/Compose
 
 손님 앱 쪽 짝: `uwb-member-app/specs/005-android-pos-verify` (S1~S8 재통과, 규칙 ①, 억제 키, 004 이월 실측).
 
-## 5. 세션 인계 — 2026-10-03 (손님 앱 세션에서 생성·bring-up 까지)
+## 5. 세션 인계 — 2026-10-04 (첫 실기기 세션: 크래시 수정 · T14 · T15 · S1/S2/S9/S10/사이클)
 
 ### 지금 상태
-- `main` = `db43c95`. spec 001 **T0~T13 완료**(순수 함수·GATT 서버·광고·FGS·로그·bring-up 화면), JVM 테스트 55개·lint 0 errors. **실기기 0회** — Acceptance 전부 미체크.
-- 남은 코드: **T14** 3패널 화면(`ui/MainScreen`·`MainViewModel`, `ui-mockup.html` — 손님 앱 `specs/003-reregister/ui-mockup.html` 의 CSS 토큰을 그대로 쓴다), **T15** `trial/CycleRunner`(+ cycles CSV·종료 시 자동 저장·① 사이클 줄), T16 나머지(거부 시 화면 사유), T18 `protocol-auditor`·정적 검토, T19 wrap-up.
-- 실기기: **S1 이 첫 시험**이다 (`specs/001-android-pos/device-tests.md` §1). S1 이 안 되면 T14·T15 를 먼저 하지 말고 원인부터.
+- `main` = `ad24343` + wrap-up 커밋. spec 001 **코드 T0~T15 완료**(T16 거부 사유 화면·T18 auditor 전체 판 남음). JVM 테스트 63개 · lint 0.
+- **실기기 통과**: S1(규칙 ①·조기 종료·MTU 512·notify 63B), S2(감지 지연 0.53/1.05 s), S9, S10, 사이클 10회(`_CYC`) + stop/start 비교(`_CYC2`). 로그는 `docs/logs/`,
+  손님 앱 쪽 `uwb-member-app/docs/logs/app_20261004_*.csv`. 짝짓기 표는 device-tests §2.
+- **남은 실기기**: S12(폰 2대 — 두 번째 폰/nRF 필요), P1(nRF 연결 중 광고 유지), P3(재부팅·BT 토글), P4(nRF 거부 코드 7행·CCCD), P5(`pair_logs.py`), P2(24h 회전).
+- **폰 상태**: POS 폰(SM-G977N, 무선 디버깅 `adb-R3CM40BQ0AJ…`)에 최신 빌드 광고 중. **디버그 "사이클을 stop/start 로" 토글이 ON** — 첫 일로 끈다. 손님 폰(SM-S928N) 자동 전송 ON.
 
-### 이 세션이 내린 결정 (바꾸려면 REQUIREMENTS §9 를 고친다)
-- D-003 `session_opened_at`/`elapsed_s` = **연결 시각**(시뮬레이터는 첫 GATT 요청). `pair_logs.py` 는 두 열을 안 쓴다.
-- D-004 **주소는 고정이 아니다** — Android 도 RPA 를 ≈15분마다 바꾼다. "Android POS 는 주소 고정" 이라고 쓰지 말 것. P2 24h 측정.
-- D-005 사이클 OFF/ON 은 `enableAdvertising` (set·주소 유지). 수동 중지/시작만 set 종료/생성.
-- D-006 Flags AD 는 스택이 넣는다 — PROTOCOL §2-1 `02 01 06` 은 상대 PR 로 "값은 스택" 으로 바꿀 것.
-- D-007 연결 중 광고 재enable 은 기본 OFF(스택 자동 재개 신뢰) + 디버그 토글.
+### 이 세션이 확인한 실측 (손님 앱 005 의 입력)
+- **같은 주소 재진입은 `FIRST_MATCH` 가 안 온다.** `enableAdvertising` OFF 15/ON 45 × 9: stop 뒤 10 s `MATCH_LOST` 는 오지만 같은 주소가 다시 나와도 OS 가 FIRST_MATCH 를 안 준다.
+  stop/start(새 주소)면 매 사이클 1.1~3.1 s 에 FIRST_MATCH. → 깨우는 조건 = 주소 변경. 손님 앱 005: MATCH_LOST 뒤 스캔 재등록 또는 억제 키.
+- **RPA 회전 ≤8~13 분**(set 생성 기준 2회 관측) → 회전마다 손님 폰 재전송. P2 24h 로 주기 확정.
+- MTU 512(Android 14+ central 은 517 요청), 60 초 억제는 56 s 에 걸림(ON ≥ 50 권장), 손님 폰 시계 오프셋 run 마다 +0.45~0.75 s.
+- D-005·D-006 근거 확보: 수동 stop/start = 새 주소(손님 앱 `detect` 주소가 run 마다 다름), Flags 실측 `02 01 06`.
+
+### 이 세션이 고친 결함 (재발 금지)
+- `DEFAULT_TX_LEVEL` 은 dBm(−127..1). 레거시 `AdvertiseSettings` 0..3 아님. Builder 체인은 `runCatching` 안.
+- `EventsCsv.Received` 의 `equals` 를 좁히지 말 것 — StateFlow 가 replace 를 버린다. `EventsStore.replace` 는 `resultJson` 만 병합(attach 필드 보존).
+- logcat 으로 Activity Log 를 볼 때 `grep "I PosActivity"` 금지 — ERR 는 `Log.w`.
 
 ### 주의 (코드에서 지킨 것 — 깨지 말 것)
 - `PosGattServer` 모든 요청 경로가 `sendResponse` 에 닿는다. 예외 → `0x0E`. 새 콜백 경로를 추가하면 같은 규칙.
-- `PosAdvertiser` 는 연결 콜백에서 호출되지 않는다. `PosService.onPhoneConnected` 는 D-007 토글일 때만 `enable(true)`.
-- `EventsCsv.HEADER` 문자열·`ActivityLine.text()` 포맷은 테스트가 잠궜다. 바꾸면 `pair_logs.py` 가 깨진다.
-- `ResultJson` 은 `org.json` 을 쓰지 않는다(이스케이프 차이). `EventsCsv` 소수는 `Locale.US`.
-- `_reference_console/` 안에서 커밋 금지. 소스에 BOM 문자를 리터럴로 넣지 말 것(lint `ByteOrderMark` 에러 — `'\uFEFF'` 이스케이프로).
+- `PosAdvertiser` 는 연결 콜백에서 호출되지 않는다. 사이클은 `enableAdvertising`, 수동 중지/시작과 디버그 토글만 set 종료/생성.
+- `EventsCsv.HEADER`·`ActivityLine.text()`·`CYCLE k/N stop|start` 포맷은 테스트가 잠궜다(`pair_logs.py`).
+- `ResultJson` 은 `org.json` 안 씀. `EventsCsv` 소수는 `Locale.US`. `_reference_console/` 커밋 금지. BOM 은 `'\uFEFF'` 이스케이프.
+- 서비스는 not exported — adb 로 액션 인텐트를 못 보낸다. 저장은 화면 버튼/5분 자동.
 
-### 손님 앱 쪽에서 기다리는 것
-- `uwb-member-app/specs/005-android-pos-verify` 는 **아직 없다**. 이 리포 S1·S2 가 되면 손님 앱 세션에서 `/sdd-new-spec` 으로 만든다 (HANDOFF §4 005 행에 범위 적어 둠).
-- 손님 앱 004 §F-7(조기 종료 가정)·§F-8(`pairlog.py` 세션 경계 버그) 는 이 리포 P4·P5 에서 함께 본다.
+### 다음 세션 첫 30분
+1. 디버그 토글 OFF. `adb devices` 로 폰 확인(README "설치"). 2. S12·P1·P4 (nRF Connect 폰 필요) · P3 (재부팅·BT 토글) 각 5분. 3. P5 `uv run tools/pair_logs.py` 로 §2 표.
+4. P2 는 두 폰을 켜 둔 채 손님 앱 CSV `detect` 주소 변화만 뽑는다. 5. T18 `protocol-auditor` 전체 판 → spec "완료".
 
-### 상대(시뮬레이터) 리포에 넘길 것
-device-tests §3 표. PR 은 실측(S1·P1·P2) 뒤에. `peer-repo-auditor` 를 먼저 돌린다.
+### 상대 리포에 넘길 것
+- 시뮬레이터 PROTOCOL PR: §2-1 Flags "값은 스택"(실측 `02 01 06`), §2-3 Android 표(규칙 ①·100 ms·요청 1 dBm → 스택 −2 dBm), §4-1 주소 부기(회전 ≤8~13 분), FAQ Q11·Q12. P2 뒤.
+- 손님 앱 005 spec: 위 실측 4건 + `docs/logs/*_CYC*`·`app_20261004_010035/011951.csv`.
