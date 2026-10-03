@@ -42,7 +42,7 @@ log/ActivityLog.kt             줄 포맷(순수) + 메모리 2000줄 + 파일 �
 log/EventsCsv.kt               17열 행 조립·직렬화(순수) + 파일 저장
 log/LogExport.kt               files/logs 저장 + FileProvider 공유
 trial/CyclePlan.kt · TrialState.kt · CycleRunner.kt   사이클 계획(순수)·상태·실행
-ui/MainScreen.kt · MainViewModel.kt                   3패널
+ui/MainScreen.kt · MainViewModel.kt                   3패널 — 한 LazyColumn(① ② sticky ③). VM 은 status·events·lines·settings 를 combine 만, 조작은 PosService 액션·Settings
 ```
 
 ## 4. 핵심 흐름

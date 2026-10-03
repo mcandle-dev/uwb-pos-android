@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Android POS 화면</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+  /* 토큰 — 시뮬레이터 specs/001-pos-beacon-simulator/ui-mockup.html 과 동일 (손님 앱 003 토큰과 같은 계열) */
+  :root {
+    --ground:       #E9EDF0;
+    --surface:      #FFFFFF;
+    --surface-sunk: #F3F5F7;
+    --ink:          #1A2028;
+    --ink-soft:     #4A5560;
+    --ink-faint:    #7A8791;
+    --rule:         #D2D9DE;
+    --rule-soft:    #E3E8EC;
+    --signal:       #0B7A8C;
+    --signal-soft:  #DCEFF2;
+    --ok:           #3D7A4E;
+    --ok-soft:      #E2EFE5;
+    --warn:         #B4532A;
+    --warn-soft:    #F7E7DF;
+    --err:          #9E2B2B;
+    --err-soft:     #F6E0E0;
+    --bezel:        #1A2028;
+    --f-sans: "IBM Plex Sans KR", system-ui, -apple-system, "Malgun Gothic", sans-serif;
+    --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0D1217; --surface: #171E25; --surface-sunk: #0F151B;
+      --ink: #E4E9ED; --ink-soft: #A3AEB8; --ink-faint: #76838F;
+      --rule: #2B353E; --rule-soft: #222B33;
+      --signal: #4FC3D6; --signal-soft: #10333B;
+      --ok: #6FB983; --ok-soft: #172C1E;
+      --warn: #E08A5F; --warn-soft: #35211A;
+      --err: #E07070; --err-soft: #3A1B1B;
+      --bezel: #2B353E;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0D1217; --surface: #171E25; --surface-sunk: #0F151B;
+    --ink: #E4E9ED; --ink-soft: #A3AEB8; --ink-faint: #76838F;
+    --rule: #2B353E; --rule-soft: #222B33;
+    --signal: #4FC3D6; --signal-soft: #10333B;
+    --ok: #6FB983; --ok-soft: #172C1E;
+    --warn: #E08A5F; --warn-soft: #35211A;
+    --err: #E07070; --err-soft: #3A1B1B;
+    --bezel: #2B353E;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: var(--f-sans); font-size: 14px; line-height: 1.45;
+    padding-inline: 16px; padding-block: 24px 64px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: auto 1fr; gap: 28px; align-items: start; }
+  @media (max-width: 760px) { .wrap { grid-template-columns: 1fr; } }
+
+  .intro h1 { font-size: 19px; font-weight: 600; margin: 0 0 8px; letter-spacing: -.01em; }
+  .intro p { margin: 0 0 12px; color: var(--ink-soft); font-size: 13px; max-width: 46ch; }
+  .intro code { font-family: var(--f-mono); font-size: 12px; background: var(--surface-sunk); padding: 1px 5px; border-radius: 3px; }
+  .notes { display: grid; gap: 12px; margin-top: 18px; }
+  .note { border-left: 3px solid var(--signal); padding: 2px 0 2px 12px; font-size: 13px; color: var(--ink-soft); max-width: 46ch; }
+  .note b { display: block; color: var(--ink); font-weight: 600; margin-bottom: 2px; }
+  .note.diff { border-left-color: var(--warn); }
+
+  /* ---- phone frame ---- */
+  .phone {
+    width: 412px; max-width: 100%;
+    background: var(--bezel); border-radius: 28px; padding: 12px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.18);
+  }
+  .screen {
+    background: var(--surface); border-radius: 18px; overflow: hidden;
+    display: flex; flex-direction: column; height: 900px; max-height: 90vh;
+  }
+  .sysbar {
+    display: flex; justify-content: space-between; padding: 6px 16px 0;
+    font-family: var(--f-mono); font-size: 11px; color: var(--ink-faint);
+  }
+  .appbar {
+    display: flex; align-items: center; gap: 10px; padding: 8px 16px 10px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .appbar .name { font-weight: 600; font-size: 15px; }
+  .appbar .sub { font-family: var(--f-mono); font-size: 11px; color: var(--ink-faint); margin-left: auto; }
+
+  .panel { padding: 10px 14px 12px; border-bottom: 1px solid var(--rule); }
+  .panel.grow { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; padding-bottom: 0; }
+  .panel.grow .scroll { overflow-y: auto; flex: 1 1 0; min-height: 0; margin-inline: -14px; padding-inline: 14px; }
+  .phead { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .phead h2 { font-size: 12px; font-weight: 600; margin: 0; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-soft); }
+  .phead .num { font-family: var(--f-mono); font-size: 11px; color: var(--signal); border: 1px solid var(--signal); border-radius: 3px; padding: 0 5px; }
+  .phead .cnt { font-family: var(--f-mono); font-size: 11px; color: var(--ink-faint); }
+  .phead .tools { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: var(--f-mono); font-size: 11px; font-weight: 500;
+    padding: 2px 8px; border-radius: 3px; white-space: nowrap;
+  }
+  .badge i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; display: block; }
+  .b-ok   { background: var(--ok-soft);   color: var(--ok); }
+  .b-warn { background: var(--warn-soft); color: var(--warn); }
+  .b-err  { background: var(--err-soft);  color: var(--err); }
+  .b-idle { background: var(--surface-sunk); color: var(--ink-faint); }
+  .b-sig  { background: var(--signal-soft); color: var(--signal); }
+
+  .statuses { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .field { display: grid; gap: 2px; min-width: 0; }
+  .field label { font-size: 10px; color: var(--ink-faint); letter-spacing: .05em; text-transform: uppercase; }
+  .field input {
+    font-family: var(--f-mono); font-size: 13px; color: var(--ink); width: 100%;
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 6px 8px; min-width: 0;
+  }
+  .field input:focus-visible, button:focus-visible, .row:focus-visible, .fold summary:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
+  button {
+    font-family: var(--f-sans); font-size: 13px; font-weight: 500;
+    border-radius: 4px; padding: 8px 12px; cursor: pointer;
+    border: 1px solid var(--rule); background: var(--surface); color: var(--ink);
+  }
+  button.primary { background: var(--signal); border-color: var(--signal); color: #fff; }
+  button:disabled { opacity: .45; cursor: default; }
+  button.small { font-size: 11px; padding: 3px 8px; }
+  .hint { font-size: 12px; color: var(--warn); margin-top: 8px; }
+  .counters { display: flex; flex-wrap: wrap; gap: 2px 12px; font-family: var(--f-mono); font-size: 11px; color: var(--ink-soft); margin-top: 8px; }
+  .counters b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* cycle row */
+  .cycle { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 8px; align-items: end; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--rule-soft); }
+  .cycle .prog { grid-column: 1 / -1; font-family: var(--f-mono); font-size: 11px; color: var(--ink-soft); display: flex; gap: 8px; align-items: center; }
+  .cycle .bar { flex: 1; height: 4px; background: var(--surface-sunk); border-radius: 2px; overflow: hidden; }
+  .cycle .bar i { display: block; height: 100%; width: 30%; background: var(--signal); }
+
+  /* fold (raw packet / debug) */
+  .fold { margin-top: 8px; border-top: 1px solid var(--rule-soft); }
+  .fold summary {
+    list-style: none; cursor: pointer; padding: 7px 0 2px;
+    font-size: 12px; color: var(--ink-soft); display: flex; align-items: center; gap: 6px;
+  }
+  .fold summary::-webkit-details-marker { display: none; }
+  .fold summary::before { content: "▸"; color: var(--signal); font-size: 11px; }
+  .fold[open] summary::before { content: "▾"; }
+  .fold summary .tag { margin-left: auto; font-family: var(--f-mono); font-size: 10px; color: var(--warn); border: 1px solid var(--warn); border-radius: 3px; padding: 0 4px; }
+  .raw { display: grid; gap: 6px; font-family: var(--f-mono); font-size: 11px; padding: 4px 0 6px; }
+  .raw .lbl { color: var(--ink-faint); display: flex; justify-content: space-between; }
+  .hx { display: flex; flex-wrap: wrap; gap: 2px; }
+  .hx span { padding: 1px 3px; border-radius: 2px; background: var(--surface-sunk); color: var(--ink); }
+  .f-flags { color: var(--ink-faint) !important; border: 1px dashed var(--rule); }
+  .f-hdr   { background: var(--signal-soft) !important; color: var(--signal) !important; }
+  .f-uuid, .f-mem { background: var(--signal) !important; color: #fff !important; }
+  .f-maj, .f-nonce { background: var(--ok-soft) !important; color: var(--ok) !important; }
+  .f-min, .f-uwb { background: var(--warn-soft) !important; color: var(--warn) !important; }
+  .f-tx    { background: var(--err-soft) !important; color: var(--err) !important; }
+  .f-ver   { background: var(--signal-soft) !important; color: var(--signal) !important; }
+  .f-rsv   { color: var(--ink-faint) !important; }
+  .hxkey { display: flex; flex-wrap: wrap; gap: 3px 10px; font-size: 10px; color: var(--ink-faint); }
+  .hxkey span::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+  .k-flags::before { background: var(--surface-sunk); border: 1px dashed var(--rule); }
+  .k-hdr::before { background: var(--signal-soft); }
+  .k-uuid::before { background: var(--signal); }
+  .k-maj::before { background: var(--ok-soft); }
+  .k-min::before { background: var(--warn-soft); }
+  .k-tx::before { background: var(--err-soft); }
+
+  /* debug card */
+  .dbg { display: grid; gap: 6px; padding: 4px 0 8px; font-size: 12px; }
+  .dbg label { display: flex; align-items: center; gap: 8px; color: var(--ink-soft); }
+  .dbg label input[type="checkbox"] { margin: 0; }
+  .dbg label .v { margin-left: auto; font-family: var(--f-mono); font-size: 11px; color: var(--ink-faint); }
+
+  /* ② connected list */
+  .conn { display: grid; grid-template-columns: auto 1fr auto auto; gap: 0 10px; font-family: var(--f-mono); font-size: 12px; }
+  .conn .h { font-family: var(--f-sans); font-size: 10px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-faint); padding: 0 0 4px; border-bottom: 1px solid var(--rule-soft); }
+  .conn .c { padding: 7px 0; border-bottom: 1px solid var(--rule-soft); font-variant-numeric: tabular-nums; min-width: 0; }
+  .conn .sid { font-weight: 600; color: var(--signal); }
+  .conn .who { display: grid; gap: 1px; }
+  .conn .mem { font-size: 15px; font-weight: 600; letter-spacing: .02em; color: var(--ink); }
+  .conn .addr { font-size: 10px; color: var(--ink-faint); }
+  .conn .pend { font-family: var(--f-sans); font-size: 12px; color: var(--ink-faint); font-weight: 400; }
+  .conn .uwb { font-size: 13px; font-weight: 500; text-align: right; }
+  .conn .link { text-align: right; font-size: 10px; color: var(--ink-faint); line-height: 1.5; }
+  .conn .link b { color: var(--ink-soft); font-weight: 500; }
+  .conn .dim { color: var(--ink-faint); }
+  .conn .r { text-align: right; }
+
+  /* ③ tabs */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--rule); margin: 0 -14px 6px; padding: 0 14px; }
+  .tab {
+    font-family: var(--f-sans); font-size: 12px; font-weight: 600; color: var(--ink-faint);
+    background: none; border: none; border-bottom: 2px solid transparent; border-radius: 0;
+    padding: 6px 10px; margin-bottom: -1px; cursor: pointer;
+  }
+  .tab[aria-selected="true"] { color: var(--signal); border-bottom-color: var(--signal); }
+  .tabs .tools { margin-left: auto; display: flex; gap: 6px; align-items: center; padding-bottom: 4px; }
+
+  /* event rows */
+  .row {
+    display: grid; gap: 2px; padding: 8px 14px; margin-inline: -14px;
+    border-bottom: 1px solid var(--rule-soft); cursor: pointer;
+  }
+  .row:hover { background: var(--surface-sunk); }
+  .row.sel { background: var(--signal-soft); }
+  .row.rej { background: var(--warn-soft); }
+  .row.rej.sel { box-shadow: inset 3px 0 0 var(--signal); }
+  .l1 { display: flex; align-items: center; gap: 8px; font-family: var(--f-mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .l1 .t { color: var(--ink-soft); }
+  .l1 .sid { font-weight: 600; color: var(--signal); }
+  .l1 .addr { color: var(--ink-faint); font-size: 11px; }
+  .l1 .el { margin-left: auto; color: var(--ink-soft); }
+  .l2 { font-family: var(--f-mono); font-size: 12px; color: var(--ink); display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; }
+  .l2 .k { font-family: var(--f-sans); font-size: 10px; color: var(--ink-faint); letter-spacing: .04em; text-transform: uppercase; }
+  .l2 .mem { font-weight: 600; font-size: 13px; }
+  .l2 .dim { color: var(--ink-faint); }
+  .l3 { font-size: 12px; color: var(--ink-soft); display: flex; gap: 8px; }
+  .l3 .cyc { font-family: var(--f-mono); color: var(--ink-faint); }
+
+  .detail {
+    margin: 0 -14px; padding: 10px 14px 12px;
+    background: var(--surface); border-bottom: 1px solid var(--rule-soft);
+    box-shadow: inset 3px 0 0 var(--signal);
+    display: grid; gap: 6px; font-family: var(--f-mono); font-size: 11px;
+  }
+  .detail .dh { font-family: var(--f-sans); font-size: 11px; font-weight: 600; color: var(--signal); letter-spacing: .05em; text-transform: uppercase; }
+  .detail .kv { display: grid; grid-template-columns: 8ch 1fr; gap: 6px; align-items: baseline; }
+  .detail .k { color: var(--ink-faint); }
+  .detail .json { color: var(--ink-soft); white-space: pre-wrap; word-break: break-all; }
+
+  /* log */
+  .log {
+    font-family: var(--f-mono); font-size: 11px; line-height: 1.6; color: var(--ink-soft);
+    white-space: pre; overflow-x: auto; padding-bottom: 12px;
+  }
+  .log .t { color: var(--ink-faint); }
+  .log .c { display: inline-block; width: 6ch; font-weight: 600; }
+  .c-adv { color: var(--signal); } .c-gatt, .c-conn { color: var(--ink); }
+  .c-nonce { color: var(--ok); } .c-look { color: var(--signal); } .c-err { color: var(--err); } .c-cycle { color: var(--warn); }
+  .log .s { color: var(--ink); display: inline-block; width: 3ch; }
+  .log .bad { color: var(--warn); }
+  .chk { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--ink-soft); }
+
+  .snack {
+    margin: 8px 14px 12px; display: flex; gap: 8px; align-items: center;
+    background: var(--ink); color: var(--ground); border-radius: 4px; padding: 8px 12px; font-size: 12px;
+  }
+  .snack b { color: var(--warn); font-weight: 600; }
+  .perm { margin: 0 0 10px; padding: 8px 10px; border-radius: 4px; background: var(--err-soft); color: var(--err); font-size: 12px; display: flex; gap: 8px; align-items: center; }
+  .perm button { margin-left: auto; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+
+  <div class="phone">
+    <div class="screen">
+      <div class="sysbar"><span>23:04</span><span>BT ▲ 100%</span></div>
+      <div class="appbar">
+        <span class="name">uwb-pos-android</span>
+        <span class="sub">Android 12 · Peripheral</span>
+      </div>
+
+      <!-- ① -->
+      <section class="panel">
+        <div class="phead"><span class="num">①</span><h2>광고 제어 · 상태</h2></div>
+        <div class="statuses">
+          <span class="badge b-ok"><i></i>광고 송출 중 · −2 dBm</span>
+          <span class="badge b-ok"><i></i>GATT 대기 중</span>
+          <span class="badge b-idle"><i></i>사이클 없음</span>
+        </div>
+        <div class="perm" hidden>근처 기기 권한이 없어 광고할 수 없습니다 <button class="small">허용</button></div>
+        <div class="field"><label for="uuid">Proximity UUID</label><input id="uuid" value="94C5D726-6C10-49B9-8758-04BE29749F20"></div>
+        <div class="grid3">
+          <div class="field"><label for="major">Major</label><input id="major" value="1"></div>
+          <div class="field"><label for="minor">Minor</label><input id="minor" value="257"></div>
+          <div class="field"><label for="tx">Tx (dBm)</label><input id="tx" value="-59"></div>
+          <div class="field"><label for="ival">간격 (ms)</label><input id="ival" value="100"></div>
+          <div class="field"><label for="ttl">nonce TTL (s)</label><input id="ttl" value="30"></div>
+          <div class="field"><label for="txl">송신 레벨</label><input id="txl" value="HIGH (1)"></div>
+        </div>
+        <div class="btns">
+          <button id="btn-start" class="primary" disabled>시작</button>
+          <button id="btn-stop">광고 중지</button>
+          <button id="btn-save">저장·공유</button>
+        </div>
+        <div class="hint">▲ Minor 변경 — 중지 후 다시 시작해야 반영 (새 set = 새 랜덤 주소).</div>
+        <div class="counters">
+          <span>연결 <b>2</b></span><span>nonce <b>7</b></span><span>수락 <b>5</b></span><span>거부 <b>2</b></span><span>주소 회전 <b>1</b></span>
+        </div>
+        <div class="cycle">
+          <div class="field"><label for="cn">사이클 N</label><input id="cn" value="10"></div>
+          <div class="field"><label for="coff">OFF (s)</label><input id="coff" value="15"></div>
+          <div class="field"><label for="con">ON (s)</label><input id="con" value="45"></div>
+          <button id="btn-cycle">실행</button>
+          <div class="prog" hidden><span>CYCLE 3/10 · ON 12s</span><span class="bar"><i></i></span><button class="small">중단</button></div>
+        </div>
+        <details class="fold" id="fold-raw">
+          <summary>송출 패킷 raw</summary>
+          <div class="raw">
+            <div class="lbl"><span>AdvData (앱 27B + Flags 스택)</span><span>30 / 31 B</span></div>
+            <div class="hx">
+              <span class="f-flags">02</span><span class="f-flags">01</span><span class="f-flags">1A</span>
+              <span class="f-hdr">1A</span><span class="f-hdr">FF</span><span class="f-hdr">4C</span><span class="f-hdr">00</span><span class="f-hdr">02</span><span class="f-hdr">15</span>
+              <span class="f-uuid">94</span><span class="f-uuid">C5</span><span class="f-uuid">D7</span><span class="f-uuid">26</span><span class="f-uuid">6C</span><span class="f-uuid">10</span><span class="f-uuid">49</span><span class="f-uuid">B9</span><span class="f-uuid">87</span><span class="f-uuid">58</span><span class="f-uuid">04</span><span class="f-uuid">BE</span><span class="f-uuid">29</span><span class="f-uuid">74</span><span class="f-uuid">9F</span><span class="f-uuid">20</span>
+              <span class="f-maj">00</span><span class="f-maj">01</span>
+              <span class="f-min">01</span><span class="f-min">01</span>
+              <span class="f-tx">C5</span>
+            </div>
+            <div class="lbl"><span>ScanRsp (같은 set · 같은 주소)</span><span>18 / 31 B</span></div>
+            <div class="hx">
+              <span class="f-hdr">11</span><span class="f-hdr">07</span>
+              <span class="f-uuid">74</span><span class="f-uuid">9F</span><span class="f-uuid">28</span><span class="f-uuid">A5</span><span class="f-uuid">F9</span><span class="f-uuid">33</span><span class="f-uuid">E3</span><span class="f-uuid">BA</span><span class="f-uuid">32</span><span class="f-uuid">42</span><span class="f-uuid">AA</span><span class="f-uuid">65</span><span class="f-uuid">01</span><span class="f-uuid">00</span><span class="f-uuid">3C</span><span class="f-uuid">BF</span>
+            </div>
+            <div class="hxkey">
+              <span class="k-flags">Flags (스택, 값은 기기마다)</span><span class="k-hdr">헤더</span><span class="k-uuid">UUID</span><span class="k-maj">Major</span><span class="k-min">Minor</span><span class="k-tx">Tx</span>
+            </div>
+          </div>
+        </details>
+        <details class="fold" id="fold-dbg">
+          <summary>디버그 <span class="tag">DEBUG 빌드만</span></summary>
+          <div class="dbg">
+            <label><input type="checkbox"> write 응답 0x80 강제 (nonce 거부)</label>
+            <label><input type="checkbox"> write 응답 0x81 강제 (형식 오류)</label>
+            <label><input type="checkbox"> 조회 not_found 강제</label>
+            <label><input type="checkbox"> 조회 지연 <span class="v">50 ms</span></label>
+            <label><input type="checkbox"> 연결 시 광고 재enable <span class="v">D-007</span></label>
+            <label><input type="checkbox"> 사이클을 stop/start 로 <span class="v">D-005 비교용</span></label>
+            <label><input type="checkbox" checked> 5분 자동 저장</label>
+          </div>
+        </details>
+      </section>
+
+      <!-- ② -->
+      <section class="panel">
+        <div class="phead"><span class="num">②</span><h2>연결 중인 폰</h2><span class="cnt">2대</span></div>
+        <div class="conn">
+          <div class="h">세션</div><div class="h">멤버 ID · 주소</div><div class="h r">UWB</div><div class="h r">링크</div>
+
+          <div class="c sid">A1</div>
+          <div class="c who"><span class="mem">1111222200</span><span class="addr">5C:3A:91:0B:E4:1F · 00:00:12</span></div>
+          <div class="c uwb">E6:F1</div>
+          <div class="c link"><b>MTU 185</b><br>구독 ✓</div>
+
+          <div class="c sid">B1</div>
+          <div class="c who"><span class="pend">payload 전</span><span class="addr">7E:02:C4:AA:19:63 · 00:00:03</span></div>
+          <div class="c uwb dim">—</div>
+          <div class="c link"><b>MTU 23</b><br>구독 —</div>
+        </div>
+      </section>
+
+      <!-- ③ -->
+      <section class="panel grow">
+        <div class="phead"><span class="num">③</span></div>
+        <div class="tabs" role="tablist">
+          <button class="tab" role="tab" id="tab-ev" aria-selected="true" aria-controls="pane-ev">수신 이벤트</button>
+          <button class="tab" role="tab" id="tab-log" aria-selected="false" aria-controls="pane-log">Activity Log</button>
+          <div class="tools" id="tools-ev">
+            <button class="small" id="btn-clear">지우기</button>
+            <button class="small" id="btn-csv">CSV</button>
+          </div>
+          <div class="tools" id="tools-log" hidden>
+            <label class="chk"><input type="checkbox" id="autoscroll" checked> 자동</label>
+            <button class="small" id="btn-savelog">저장</button>
+          </div>
+        </div>
+        <div class="scroll" id="pane-ev" role="tabpanel">
+
+          <div class="row sel" tabindex="0">
+            <div class="l1"><span class="t">23:04:11</span><span class="sid">A1</span><span class="addr">5C:3A:…:1F · MTU 185</span><span class="badge b-ok">OK</span><span class="el">0.42 s</span></div>
+            <div class="l2"><span class="k">멤버</span><span class="mem">1111222200</span><span class="k">UWB</span><span>E6:F1</span><span class="k">nonce</span><span>C1F376E1</span></div>
+            <div class="l3"><span>success · 김**트 · notify 63B</span></div>
+          </div>
+          <div class="detail">
+            <div class="dh">상세 · A1 · 23:04:11.402</div>
+            <div class="kv"><span class="k">접속</span><span>5C:3A:91:0B:E4:1F · 연결 23:04:10.980 · MTU 185 · 구독 ✓</span></div>
+            <div class="kv"><span class="k">raw 16B</span>
+              <span class="hx">
+                <span class="f-ver">01</span>
+                <span class="f-mem">11</span><span class="f-mem">11</span><span class="f-mem">22</span><span class="f-mem">22</span><span class="f-mem">00</span>
+                <span class="f-uwb">E6</span><span class="f-uwb">F1</span>
+                <span class="f-nonce">C1</span><span class="f-nonce">F3</span><span class="f-nonce">76</span><span class="f-nonce">E1</span>
+                <span class="f-rsv">00</span><span class="f-rsv">00</span><span class="f-rsv">00</span><span class="f-rsv">00</span>
+              </span></div>
+            <div class="kv"><span class="k">version</span><span>01</span></div>
+            <div class="kv"><span class="k">member</span><span>11 11 22 22 00 → BCD → 1111222200</span></div>
+            <div class="kv"><span class="k">uwb</span><span>E6 F1 → E6:F1</span></div>
+            <div class="kv"><span class="k">nonce</span><span>C1F376E1 = 발급 C1F376E1<br>23:04:11.398 · ttl 30s · 경과 0.004s → 일치</span></div>
+            <div class="kv"><span class="k">reserved</span><span class="dim">00 00 00 00</span></div>
+            <div class="kv"><span class="k">result</span><span class="json">{"v":1,"status":"success","member":"김**트","message":"mock"}</span></div>
+            <div class="kv"><span class="k">전달</span><span>NOTIFY 63B ≤ 182 (MTU−3) · onNotificationSent 0</span></div>
+          </div>
+
+          <div class="row rej" tabindex="0">
+            <div class="l1"><span class="t">23:03:09</span><span class="sid">B2</span><span class="addr">7E:02:…:63 · MTU 185</span><span class="badge b-warn">만료</span><span class="el">—</span></div>
+            <div class="l2"><span class="k">멤버</span><span class="mem">9876543210</span><span class="k">UWB</span><span>12:34</span><span class="k">nonce</span><span>55A1C0DE</span></div>
+            <div class="l3"><span>0x80 · 발급 후 31.4s</span></div>
+          </div>
+
+          <div class="row rej" tabindex="0">
+            <div class="l1"><span class="t">23:01:50</span><span class="sid">A0</span><span class="addr">5C:3A:…:1F · MTU 185</span><span class="badge b-warn">불일치</span><span class="el">—</span></div>
+            <div class="l2"><span class="k">멤버</span><span class="mem">1111222200</span><span class="k">UWB</span><span>E6:F1</span><span class="k">nonce</span><span>00000000</span></div>
+            <div class="l3"><span>0x80 · 기대 1F2E3D4C</span></div>
+          </div>
+
+          <div class="row" tabindex="0">
+            <div class="l1"><span class="t">22:58:40</span><span class="sid">C1</span><span class="addr">41:9D:…:08 · MTU 185</span><span class="badge b-ok">OK</span><span class="el">0.55 s</span></div>
+            <div class="l2"><span class="k">멤버</span><span class="mem">0123456789</span><span class="k">UWB</span><span class="dim">미지원</span><span class="k">nonce</span><span>7A3F91C2</span></div>
+            <div class="l3"><span>success · 홍*동 · notify 63B</span><span class="cyc">cycle 3 · 광고 시작 후 4.2s</span></div>
+          </div>
+
+          <div class="row rej" tabindex="0">
+            <div class="l1"><span class="t">22:51:22</span><span class="sid">D1</span><span class="addr">nRF · MTU 23</span><span class="badge b-err">버전 오류</span><span class="el">—</span></div>
+            <div class="l2"><span class="dim">디코딩 실패 · [0]=07</span></div>
+            <div class="l3"><span>0x81</span></div>
+          </div>
+
+          <div class="row" tabindex="0">
+            <div class="l1"><span class="t">22:50:05</span><span class="sid">D0</span><span class="addr">nRF · MTU 23</span><span class="badge b-ok">OK</span><span class="el">8.10 s</span></div>
+            <div class="l2"><span class="k">멤버</span><span class="mem">9876543210</span><span class="k">UWB</span><span>12:34</span><span class="k">nonce</span><span>C0FFEE01</span></div>
+            <div class="l3"><span class="badge b-warn">NOTIFY 생략 63B &gt; 20B · READ 대기</span></div>
+          </div>
+
+        </div>
+        <div class="scroll" id="pane-log" role="tabpanel" hidden>
+<div class="log"><span class="t">11.405</span> <span class="c c-look">LOOK </span><span class="s">A1</span> lookup → {"v":1,"status":"success","member":"김**트","message":"mock"} (51.2 ms) · notified=true
+<span class="t">11.402</span> <span class="c c-gatt">GATT </span><span class="s">A1</span> write 16B member=111******* uwb=E6:F1 nonce=C1F376E1 → 수락 (nonce 일치 (발급 후 0.004s))
+<span class="t">11.398</span> <span class="c c-nonce">NONCE</span><span class="s">A1</span> read → C1F376E1 (ttl 30s)
+<span class="t">11.210</span> <span class="c c-gatt">GATT </span><span class="s">A1</span> result notify 구독
+<span class="t">11.102</span> <span class="c c-gatt">GATT </span><span class="s">A1</span> MTU 185
+<span class="t">10.980</span> <span class="c c-conn">CONN </span><span class="s">A1</span> connected 5C:3A:91:0B:E4:1F · 세션 생성
+<span class="t">09.120</span> <span class="c c-err">ERR  </span><span class="s">B2</span> <span class="bad">write 16B 거부 0x80: 만료 — 발급 후 31.4s</span>
+<span class="t">50.377</span> <span class="c c-err">ERR  </span><span class="s">A0</span> <span class="bad">write 16B 거부 0x80: 불일치 — 기대 1F2E3D4C, 수신 00000000</span>
+<span class="t">40.011</span> <span class="c c-cycle">CYCLE</span><span class="s">— </span> 3/10 start
+<span class="t">25.004</span> <span class="c c-cycle">CYCLE</span><span class="s">— </span> 3/10 stop
+<span class="t">00.033</span> <span class="c c-adv">ADV  </span><span class="s">— </span> publisher started (AdvertisingSet 콜백 확인) — on-air 30B, Flags 스택, connectable, tx -2 dBm, interval 160×0.625ms
+<span class="t">00.014</span> <span class="c c-adv">ADV  </span><span class="s">— </span> start 요청 iBeacon 23B major=1 minor=257 tx=-59 — 상태는 콜백으로 확인
+<span class="t">59.985</span> <span class="c c-gatt">GATT </span><span class="s">— </span> service advertising started — 3 chars (nonce/payload/result), connectable
+<span class="t">59.920</span> <span class="c c-adv">ADV  </span><span class="s">— </span> MY_PACKAGE_REPLACED → PosService 기동</div>
+        </div>
+        <div class="snack"><b>ERR</b> result 63B &gt; notify 한도 20B — 폰이 MTU를 안 올렸다. NOTIFY 생략, READ로 받아야 함 (예시)</div>
+      </section>
+    </div>
+  </div>
+
+  <div class="intro">
+    <h1>Android POS 화면 목업 (spec 001 T14)</h1>
+    <p>시뮬레이터 <code>specs/001-pos-beacon-simulator/ui-mockup.html</code>의 3패널 배치를 그대로 두고 Android Peripheral에서 달라지는 것만 바꿨다. 값은 전부 예시. 구현은 Compose(<code>ui/MainScreen</code>·<code>MainViewModel</code>).</p>
+    <p><strong>412×900 세로 폰</strong> 기준. ①②는 고정, ③이 남은 높이를 차지해 스크롤한다. 탭과 행을 눌러볼 수 있다.</p>
+    <div class="notes">
+      <div class="note"><b>수신 이벤트 한 행 = 접속 · 멤버 ID · UWB</b>1줄: 시각 · 세션 라벨 · 주소(축약)+MTU · 판정 배지 · 연결→write 경과(<code>elapsed_s</code>, D-003). 2줄: 멤버 ID(굵게) · UWB 주소(<code>미지원</code>이면 흐리게) · nonce. 3줄: 조회 결과·마스킹 이름·전달 방식(notify/READ), 사이클이면 <code>cycle k · 광고 시작 후 N.Ns</code>. events CSV 17열이 그대로 재료다.</div>
+      <div class="note"><b>행을 탭하면 상세</b>접속 정보(주소 전체·연결 시각·MTU·구독), raw 16B 필드 색, nonce 발급↔수신 대조, result JSON, 전달(NOTIFY 크기와 MTU−3 한도). 한 번에 한 행.</div>
+      <div class="note diff"><b>② 연결 중인 폰 — 열이 늘었다 (FR-18)</b>세션 라벨 · 멤버 ID+주소+연결 경과 · UWB · 링크(MTU·구독). 시뮬레이터는 멤버 ID·UWB 두 열이었지만 Android는 <code>onMtuChanged</code>·CCCD를 알므로 NOTIFY 가능 여부를 점원이 바로 본다. payload 전 연결도 보인다. 우리 서비스를 안 쓰는 central도 라벨을 소비한다(§F-6) — 그대로 보여 준다.</div>
+      <div class="note diff"><b>① 배지 세 개 · 입력 여섯 · 버튼 세 개</b>광고 배지에 콜백이 돌려준 실제 tx(<code>onAdvertisingSetStarted</code> txPower)를 붙인다. 사이클 배지가 추가됐다. TTL과 송신 레벨 입력이 추가됐다(송신 레벨은 dBm, <code>AdvertisingSetParameters</code> −127..1). 저장·공유 버튼이 ①에 있다(FileProvider). 31+ 폰에서 권한이 없으면 빨간 줄과 "허용" 버튼이 배지 아래 나온다.</div>
+      <div class="note diff"><b>사이클 줄은 ① 안</b>N·OFF·ON·실행. OFF+ON&lt;60이면 경고(손님 앱 재전송 억제 15분과 겹치지 않도록). 실행 중에는 입력 대신 진행 줄(<code>CYCLE k/N</code>·남은 초·막대·중단). OFF/ON은 <code>enableAdvertising</code>이라 주소가 안 바뀐다(D-005). 끝나면 세 파일 자동 저장.</div>
+      <div class="note diff"><b>raw Flags는 점선</b>앱이 넣는 건 27B. Flags 3B는 스택이 넣고 값(0x06/0x1A)이 기기마다 다르다(D-006). 목록에 표시는 하되 점선으로 "앱 바깥"임을 보인다.</div>
+      <div class="note diff"><b>카운터에 주소 회전</b>RPA 회전은 OS가 한다(≈15분, D-004). 앱은 own address를 못 읽으므로 이 값은 손님 앱 CSV <code>pos_addr</code>로 P2에서 채운다 — 구현 1차에서는 숨김.</div>
+      <div class="note"><b>상태 배지는 콜백에서만 바뀐다</b>"시작"을 눌러도 <code>onAdvertisingSetStarted</code> 전까지 배지는 <em>전환 중</em>. 광고·GATT·사이클 배지는 서로 독립. 오류는 배지·ERR 로그·스낵바 3곳(FR-20).</div>
+      <div class="note"><b>Activity Log 줄은 시뮬레이터와 같은 포맷</b><code>HH:mm:ss.SSS  CAT   sid msg</code>. <code>pair_logs.py</code>가 읽는다. Android 전용 줄: <code>MTU 185</code>, <code>result notify 구독</code>, <code>publisher started (AdvertisingSet 콜백 확인)</code>, <code>CYCLE k/N stop|start</code>.</div>
+      <div class="note"><b>지우기는 로그 1행</b>수신 이벤트 지우기 → Activity Log에 <code>EVENTS cleared N rows</code>. Activity Log 자체는 지우지 않는다(2000줄 링).</div>
+      <div class="note"><b>디버그 카드는 DEBUG 빌드에만</b>D-009 토글 6종 + 자동 저장. 접혀 있다. 릴리스에는 섹션 자체가 없다(NFR-4).</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  (function () {
+    var rows = document.querySelectorAll('.row');
+    var detail = document.querySelector('.detail');
+    rows.forEach(function (r) {
+      function pick() {
+        rows.forEach(function (x) { x.classList.remove('sel'); });
+        r.classList.add('sel');
+        r.after(detail);
+        detail.querySelector('.dh').textContent = '상세 · ' + r.querySelector('.sid').textContent + ' · 예시 (실제 구현에서는 행마다 다른 값)';
+      }
+      r.addEventListener('click', pick);
+      r.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+    });
+
+    var tabs = [
+      { tab: document.getElementById('tab-ev'),  pane: document.getElementById('pane-ev'),  tools: document.getElementById('tools-ev') },
+      { tab: document.getElementById('tab-log'), pane: document.getElementById('pane-log'), tools: document.getElementById('tools-log') }
+    ];
+    tabs.forEach(function (t) {
+      t.tab.addEventListener('click', function () {
+        tabs.forEach(function (x) {
+          var on = x === t;
+          x.tab.setAttribute('aria-selected', on ? 'true' : 'false');
+          x.pane.hidden = !on;
+          x.tools.hidden = !on;
+        });
+      });
+    });
+
+    // 사이클 실행 → 진행 줄로 전환 (목업)
+    var cyc = document.getElementById('btn-cycle');
+    var prog = document.querySelector('.cycle .prog');
+    cyc.addEventListener('click', function () {
+      prog.hidden = false;
+      document.querySelectorAll('.statuses .badge')[2].className = 'badge b-sig';
+      document.querySelectorAll('.statuses .badge')[2].innerHTML = '<i></i>사이클 3/10 · ON';
+    });
+    prog.querySelector('button').addEventListener('click', function () {
+      prog.hidden = true;
+      document.querySelectorAll('.statuses .badge')[2].className = 'badge b-idle';
+      document.querySelectorAll('.statuses .badge')[2].innerHTML = '<i></i>사이클 없음';
+    });
+
+    // 권한 줄 미리보기: 배지 영역 더블클릭
+    document.querySelector('.statuses').addEventListener('dblclick', function () {
+      var p = document.querySelector('.perm'); p.hidden = !p.hidden;
+    });
+  })();
+</script>
+</html>

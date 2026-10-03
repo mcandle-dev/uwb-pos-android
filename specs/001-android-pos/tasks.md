@@ -35,7 +35,7 @@ spec: [spec.md](spec.md) · plan: [plan.md](plan.md) · 승인 2026-10-03. 완�
 
 ## 5. 화면
 
-- [ ] T14. `ui/MainViewModel.kt`(UiState: 광고/GATT 배지·세션 목록·events·로그·설정·사이클 진행·권한) · `ui/MainScreen.kt` 3패널(FR-17~20) · 디버그 카드 · `ui-mockup.html`(손님 앱 토큰, 3패널 폰 프레임)
+- [x] T14. `ui/MainViewModel.kt`(UiState: 광고/GATT 배지·세션 목록·events·로그·설정·사이클 진행·권한) · `ui/MainScreen.kt` 3패널(FR-17~20) · 디버그 카드 · `ui-mockup.html`(시뮬레이터 토큰, 3패널 폰 프레임) — 실기기 SM-G977N 화면 확인(스크린샷). 사이클 "실행" 은 T15 전까지 ERR 로그 1줄
 
 ## 6. 사이클
 
