@@ -1,0 +1,81 @@
+00:46:00.559  GATT  —   service advertising started — 3 chars (nonce/payload/result), connectable
+00:46:00.569  ADV   —   start 요청 iBeacon 23B major=1 minor=257 tx=-59 — 상태는 콜백으로 확인
+00:46:00.589  ADV   —   publisher started (AdvertisingSet 콜백 확인) — on-air 30B, Flags 스택, connectable, tx -2 dBm, interval 160×0.625ms
+00:46:03.645  CONN  A1  connected 44:3E:4B:58:3D:36 · 세션 생성
+00:46:04.289  GATT  A1  MTU 512
+00:46:04.341  GATT  A1  result notify 구독
+00:46:04.411  NONCE A1  read → AA3E496C (ttl 30s)
+00:46:04.493  GATT  A1  write 16B member=1111222200 uwb=8E:CD nonce=AA3E496C → 수락 (nonce 일치 (발급 후 0.080s))
+00:46:04.589  LOOK  A1  lookup → {"v":1,"status":"success","member":"김**트","message":"mock"} (56.0 ms) · notified=true
+00:46:05.781  CONN  A1  disconnected · 세션 폐기
+00:49:36.918  CYCLE —   사이클 시작 — 10회 · OFF 15s · ON 45s · ttl 30s · enableAdvertising (set·주소 유지)
+00:49:36.926  CYCLE —   1/10 stop
+00:49:36.940  ADV   —   stop 요청 (enableAdvertising false — set 유지)
+00:49:36.990  ADV   —   publisher stopped (enableAdvertising false — set 유지)
+00:49:51.953  CYCLE —   1/10 start
+00:49:51.963  ADV   —   start 요청 (enableAdvertising true)
+00:49:52.001  ADV   —   publisher started (enableAdvertising 콜백 확인) — set·주소 유지
+00:50:37.004  CYCLE —   2/10 stop
+00:50:37.013  ADV   —   stop 요청 (enableAdvertising false — set 유지)
+00:50:37.039  ADV   —   publisher stopped (enableAdvertising false — set 유지)
+00:50:52.029  CYCLE —   2/10 start
+00:50:52.039  ADV   —   start 요청 (enableAdvertising true)
+00:50:52.072  ADV   —   publisher started (enableAdvertising 콜백 확인) — set·주소 유지
+00:51:37.075  CYCLE —   3/10 stop
+00:51:37.081  ADV   —   stop 요청 (enableAdvertising false — set 유지)
+00:51:37.109  ADV   —   publisher stopped (enableAdvertising false — set 유지)
+00:51:52.105  CYCLE —   3/10 start
+00:51:52.112  ADV   —   start 요청 (enableAdvertising true)
+00:51:52.159  ADV   —   publisher started (enableAdvertising 콜백 확인) — set·주소 유지
+00:52:37.162  CYCLE —   4/10 stop
+00:52:37.168  ADV   —   stop 요청 (enableAdvertising false — set 유지)
+00:52:37.214  ADV   —   publisher stopped (enableAdvertising false — set 유지)
+00:52:40.762  GATT  —   자동 저장 → events_20261004_005240.csv · cycles_20261004_005240.csv · pos_20261004_005240.txt
+00:52:52.181  CYCLE —   4/10 start
+00:52:52.188  ADV   —   start 요청 (enableAdvertising true)
+00:52:52.220  ADV   —   publisher started (enableAdvertising 콜백 확인) — set·주소 유지
+00:53:37.223  CYCLE —   5/10 stop
+00:53:37.231  ADV   —   stop 요청 (enableAdvertising false — set 유지)
+00:53:37.267  ADV   —   publisher stopped (enableAdvertising false — set 유지)
+00:53:52.244  CYCLE —   5/10 start
+00:53:52.254  ADV   —   start 요청 (enableAdvertising true)
+00:53:52.288  ADV   —   publisher started (enableAdvertising 콜백 확인) — set·주소 유지
+00:54:37.290  CYCLE —   6/10 stop
+00:54:37.295  ADV   —   stop 요청 (enableAdvertising false — set 유지)
+00:54:37.357  ADV   —   publisher stopped (enableAdvertising false — set 유지)
+00:54:52.385  CYCLE —   6/10 start
+00:54:52.393  ADV   —   start 요청 (enableAdvertising true)
+00:54:52.413  ADV   —   publisher started (enableAdvertising 콜백 확인) — set·주소 유지
+00:55:40.093  CYCLE —   7/10 stop
+00:55:40.108  ADV   —   stop 요청 (enableAdvertising false — set 유지)
+00:55:40.133  ADV   —   publisher stopped (enableAdvertising false — set 유지)
+00:55:55.710  CYCLE —   7/10 start
+00:55:55.733  ADV   —   start 요청 (enableAdvertising true)
+00:55:55.754  ADV   —   publisher started (enableAdvertising 콜백 확인) — set·주소 유지
+00:56:42.674  CYCLE —   8/10 stop
+00:56:42.686  ADV   —   stop 요청 (enableAdvertising false — set 유지)
+00:56:42.704  ADV   —   publisher stopped (enableAdvertising false — set 유지)
+00:56:58.256  CYCLE —   8/10 start
+00:56:58.259  ADV   —   start 요청 (enableAdvertising true)
+00:56:58.265  ADV   —   publisher started (enableAdvertising 콜백 확인) — set·주소 유지
+00:57:43.268  CYCLE —   9/10 stop
+00:57:43.276  ADV   —   stop 요청 (enableAdvertising false — set 유지)
+00:57:43.301  ADV   —   publisher stopped (enableAdvertising false — set 유지)
+00:57:46.030  GATT  —   자동 저장 → events_20261004_005745.csv · cycles_20261004_005745.csv · pos_20261004_005746.txt
+00:57:58.291  CYCLE —   9/10 start
+00:57:58.300  ADV   —   start 요청 (enableAdvertising true)
+00:57:58.336  ADV   —   publisher started (enableAdvertising 콜백 확인) — set·주소 유지
+00:58:43.340  CYCLE —   10/10 stop
+00:58:43.355  ADV   —   stop 요청 (enableAdvertising false — set 유지)
+00:58:43.385  ADV   —   publisher stopped (enableAdvertising false — set 유지)
+00:58:58.370  CYCLE —   10/10 start
+00:58:58.378  ADV   —   start 요청 (enableAdvertising true)
+00:58:58.404  ADV   —   publisher started (enableAdvertising 콜백 확인) — set·주소 유지
+00:59:10.830  CONN  B1  connected 58:EB:41:DF:20:B7 · 세션 생성
+00:59:11.507  GATT  B1  MTU 512
+00:59:11.552  GATT  B1  result notify 구독
+00:59:11.614  NONCE B1  read → C9FE27E1 (ttl 30s)
+00:59:11.692  GATT  B1  write 16B member=1111222200 uwb=A6:9C nonce=C9FE27E1 → 수락 (nonce 일치 (발급 후 0.075s))
+00:59:11.773  LOOK  B1  lookup → {"v":1,"status":"success","member":"김**트","message":"mock"} (52.0 ms) · notified=true
+00:59:12.962  CONN  B1  disconnected · 세션 폐기
+00:59:43.411  CYCLE —   CYCLE done 10/10 · writes 1 · no-write [1,2,3,4,5,6,7,8,9]

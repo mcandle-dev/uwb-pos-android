@@ -110,7 +110,7 @@ ui-mockup(T5)이 진실원천. ① 광고 제어·상태 ② 연결 중인 폰 �
 - [ ] **P4** nRF Connect로 15B / 버전 7 / BCD 0xAB write → `길이 오류/버전 오류/BCD 오류` 0x81, 미발급 0x80, CCCD 읽기 응답
 - [ ] **P5** `pair_logs.py` 가 POS events + 손님 앱 CSV를 열 변경 없이 짝짓는다
 - [ ] **P2** 24h 광고 중 손님 앱 `pos_addr` 회전 주기 기록 → 상대 PR(§2-3·FAQ Q11)
-- [ ] 사이클 10회가 돌고 cycles CSV·events `cycle` 열이 찍힌다 (시뮬레이터 spec 002 T22 동등)
+- [x] 사이클 10회가 돌고 cycles CSV·events `cycle` 열이 찍힌다 (시뮬레이터 spec 002 T22 동등) — 2026-10-04 00:49~00:59, `CYCLE done 10/10 · writes 1 · no-write [1..9]` (손님 앱이 같은 주소에 재발화하지 않음 — device-tests §2 사이클)
 - [ ] JVM 단위 테스트 통과 · `protocol-auditor`(Peripheral 판) 통과 · lint 0 errors
 - [ ] 상대 PR: PROTOCOL §2-1 Flags 문구 · §2-3 실측 표 · §4-1 주소 부기 · FAQ Q11 정정 · Q12 elapsed_s 부기
 - [ ] CHANGELOG · ARCHITECTURE · FAQ · device-tests 갱신 (`/wrap-up`)

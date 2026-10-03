@@ -203,7 +203,7 @@ private fun PanelAdvertising(state: MainViewState, actions: MainActions) {
             }
         }
         // 입력은 접이식 — 송출 중이면 접힌다 (② 가 첫 화면에 들어오게). 바꾸면 "재시작 필요"
-        val started = state.status.adv is PosAdvertiser.State.Started
+        val started = state.status.adv is PosAdvertiser.State.Started || state.status.adv is PosAdvertiser.State.Off // 사이클 OFF 도 "살아 있는 set"
         Fold(
             "광고 설정 · Major ${state.draft.major} / Minor ${state.draft.minor} · ${state.draft.intervalMs} ms · TTL ${state.draft.ttlS}s",
             initiallyOpen = !started, tag = if (state.needsRestart) "재시작 필요" else null,
@@ -222,7 +222,8 @@ private fun PanelAdvertising(state: MainViewState, actions: MainActions) {
             }
         }
         Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            val canStart = state.permissions.missingRequired.isEmpty() && state.status.adv !is PosAdvertiser.State.Started && state.status.adv !is PosAdvertiser.State.Starting
+            // 사이클 중(Off 포함)에는 "시작" 을 막는다 — startAll 이 enable(true) 를 불러 실행기와 충돌한다
+            val canStart = state.permissions.missingRequired.isEmpty() && state.cycleProgress == null && state.status.adv !is PosAdvertiser.State.Started && state.status.adv !is PosAdvertiser.State.Starting && state.status.adv !is PosAdvertiser.State.Off
             Button(
                 onClick = actions.onStart, enabled = canStart || missing.isNotEmpty(), modifier = Modifier.weight(1f), shape = RoundedCornerShape(4.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Signal, disabledContainerColor = SignalSoft, disabledContentColor = Signal),

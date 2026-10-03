@@ -83,6 +83,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             running = arr[1] as Boolean, status = status, settings = snap, draft = draft,
             needsRestart = status.adv is PosAdvertiser.State.Started && draftDiffers(draft, snap),
             events = (arr[4] as List<EventsCsv.Received>).asReversed(), lines = arr[5] as List<ActivityLine>,
+            cycleProgress = status.cycle,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, UiState())
 
@@ -146,11 +147,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
     fun consumeSnack() = local.update { it.copy(snack = null) }
 
-    /** 사이클 실행 — 실행기(`trial/CycleRunner`)는 T15. 조용히 리턴하지 않는다 (constitution §5) */
+    /** 사이클 실행 — `PosService` 가 `CycleRunner` 를 돌린다. 입력이 숫자가 아니면 기본값 */
     fun runCycle() {
-        app.activityLog.add(ActivityLine.Cat.ERR, null, "사이클 실행기 미구현 (spec 001 T15) — N=${local.value.draft.cycleN} OFF=${local.value.draft.cycleOffS} ON=${local.value.draft.cycleOnS}", true)
+        val d = local.value.draft
+        PosService.startCycle(
+            getApplication(),
+            n = d.cycleN.toIntOrNull() ?: CyclePlan.DEFAULT_N, offS = d.cycleOffS.toIntOrNull() ?: CyclePlan.DEFAULT_OFF_S, onS = d.cycleOnS.toIntOrNull() ?: CyclePlan.DEFAULT_ON_S,
+        )
     }
-    fun stopCycle() {}
+    fun stopCycle() = PosService.stopCycle(getApplication())
 
     // 디버그 (D-009) — DEBUG 빌드에서만 화면에 나온다
     fun setForceStatus(status: Int?) { viewModelScope.launch { app.settings.setDebugForceStatus(status) } }

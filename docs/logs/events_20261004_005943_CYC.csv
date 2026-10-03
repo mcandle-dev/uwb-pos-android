@@ -1,0 +1,3 @@
+﻿time,session,member_id,uwb,nonce,verdict,issued_nonce,nonce_age_s,elapsed_s,result,raw_hex,detail,adv_started_at,session_opened_at,nonce_issued_at,cycle,adv_to_write_s
+2026-10-04T00:46:04.455,A1,1111222200,8E:CD,AA3E496C,OK,AA3E496C,0.080,0.810,"{""v"":1,""status"":""success"",""member"":""김**트"",""message"":""mock""}",01 11 11 22 22 00 8E CD AA 3E 49 6C 00 00 00 00,nonce 일치 (발급 후 0.080s),2026-10-04T00:46:00.589,2026-10-04T00:46:03.644,2026-10-04T00:46:04.397,,3.866
+2026-10-04T00:59:11.665,B1,1111222200,A6:9C,C9FE27E1,OK,C9FE27E1,0.075,0.835,"{""v"":1,""status"":""success"",""member"":""김**트"",""message"":""mock""}",01 11 11 22 22 00 A6 9C C9 FE 27 E1 00 00 00 00,nonce 일치 (발급 후 0.075s),2026-10-04T00:58:58.403,2026-10-04T00:59:10.829,2026-10-04T00:59:11.604,10,13.262

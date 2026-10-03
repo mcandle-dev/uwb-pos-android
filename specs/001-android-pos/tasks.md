@@ -39,7 +39,7 @@ spec: [spec.md](spec.md) · plan: [plan.md](plan.md) · 승인 2026-10-03. 완�
 
 ## 6. 사이클
 
-- [ ] T15. `trial/CycleRunner.kt`(enableAdvertising OFF/ON, `onAdvertisingEnabled` ≤10초, 예외·미도달 중단, `CYCLE k/N stop|start` 로그, 요약, late write) · cycles CSV · 종료 시 세 파일 자동 저장 · ① 패널 사이클 줄
+- [x] T15. `trial/CycleRunner.kt`(enableAdvertising OFF/ON, `onAdvertisingEnabled` ≤10초, 예외·미도달 중단, `CYCLE k/N stop|start` 로그, 요약, late write) · cycles CSV · 종료 시 세 파일 자동 저장 · ① 패널 사이클 줄 — `CycleRunnerTest` 5건, 실기기 10회 완주 2026-10-04 00:49~00:59 (`_CYC`)
 
 ## 7. 권한
 

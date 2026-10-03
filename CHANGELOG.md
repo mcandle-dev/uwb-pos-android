@@ -3,6 +3,17 @@
 동작이 바뀌면 여기에 적는다 (constitution §10). 설계가 바뀌면 `docs/ARCHITECTURE.md`도 함께 고친다.
 **"Verified"는 실기기(POS 폰 + 손님 앱 폰)로 확인한 것만** 쓴다 (constitution §7).
 
+## 2026-10-04 — T15 사이클 실행기 (실기기 10회 완주)
+
+### Added
+- `trial/CycleRunner.kt` — `pos_sim/cycle.py` 동등: `CYCLE k/N stop|start`, `publisher started` 10 s 대기, 실패·중단은 ERR 뒤 중단(재시도 없음), 진행(`progress`)은 대기 시간만 합산. `CycleRunnerTest` 5건(가상 시계).
+- `PosService` — `ACTION_CYCLE_START/STOP`. OFF/ON = `enableAdvertising`(set·주소 유지, D-005), 디버그 토글이면 stop/start. 광고 미송출이면 ERR 거부. 1 s 진행 publish. 끝나면 `CYCLE done k/N · writes W · no-write [...]` + **events·cycles·pos 세 파일 자동 저장**(5 분 자동 저장도 cycles 포함). OFF 중 중단되면 광고 복구.
+- 화면: ① 사이클 줄 "실행" → 진행 줄 + "중단", 배지 `사이클 k/N · OFF/ON`. 사이클 중(Off 포함)에는 "시작" 비활성, 광고 설정 접힘 유지.
+
+### Verified (SM-G977N, 00:49~00:59)
+- `CYCLE done 10/10 · writes 1 · no-write [1..9]`, cycles CSV 10행, events `cycle=10`·`adv_to_write_s 13.262`, late write 없음. stop→start 15.0~15.6 s, `onAdvertisingEnabled` 40~50 ms.
+- 손님 앱은 같은 주소의 OFF 15/ON 45 에 재발화하지 않았다(10 번째만 1건, 직전 전송 13 분 뒤) — 손님 앱 CSV 로 원인 분리 예정 (device-tests §2 사이클).
+
 ## 2026-10-03 — T14 3패널 화면 · events `result` 열이 비던 결함 수정 (실기기 SM-G977N)
 
 ### Added

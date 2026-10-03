@@ -26,6 +26,8 @@ import dev.mcandle.uwbpos.pos.MockLookup
 import dev.mcandle.uwbpos.pos.NonceStore
 import dev.mcandle.uwbpos.pos.PosEngine
 import dev.mcandle.uwbpos.pos.SessionRegistry
+import dev.mcandle.uwbpos.trial.CyclePlan
+import dev.mcandle.uwbpos.trial.CycleRunner
 import dev.mcandle.uwbpos.trial.TrialState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +37,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.launch
 
 /**
@@ -53,7 +57,9 @@ class PosService : Service() {
     private lateinit var advertiser: PosAdvertiser
     private lateinit var watcher: BtStateWatcher
     private var settingsSnap: Settings.Snapshot? = null
-    private var autosaveJob: kotlinx.coroutines.Job? = null
+    private var autosaveJob: Job? = null
+    private var cycleJob: Job? = null
+    private var cycleRunner: CycleRunner? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -94,8 +100,12 @@ class PosService : Service() {
         if (!fg) { stopSelf(); return START_NOT_STICKY }
         _running.value = true
         when (intent?.action) {
-            ACTION_STOP_ADV -> scope.launch { stopAdvertising(); publish() }
+            ACTION_STOP_ADV -> scope.launch { stopCycle("광고 중지"); stopAdvertising(); publish() }
             ACTION_SAVE -> scope.launch { saveAll("수동") }
+            ACTION_CYCLE_START -> startCycle(
+                intent.getIntExtra(EXTRA_N, CyclePlan.DEFAULT_N), intent.getIntExtra(EXTRA_OFF_S, CyclePlan.DEFAULT_OFF_S), intent.getIntExtra(EXTRA_ON_S, CyclePlan.DEFAULT_ON_S),
+            )
+            ACTION_CYCLE_STOP -> scope.launch { stopCycle("사용자 중단") }
             else -> scope.launch { startAll() } // START · 부팅 · 앱 열기
         }
         return START_STICKY
@@ -107,6 +117,7 @@ class PosService : Service() {
         advertiser.stop()
         server.close()
         autosaveJob?.cancel()
+        cycleJob?.cancel()
         scope.cancel()
         super.onDestroy()
     }
@@ -153,9 +164,72 @@ class PosService : Service() {
         publish()
     }
 
-    // ── 사이클 · 로그 ───────────────────────────────────────────────────
+    // ── 사이클 (T15, 시뮬레이터 spec 002 동등) ─────────────────────────────
 
     private val trial = TrialState()
+
+    /**
+     * OFF/ON 은 `enableAdvertising` (D-005, set·주소 유지). 디버그 D-005 토글이면 stop/start (새 set = 새 주소 — 비교용).
+     * 광고가 살아 있어야 시작한다(첫 stop 이 의미를 갖도록). 끝나면 요약 + 세 파일 저장. 돌고 있으면 무시하고 ERR 1줄.
+     */
+    private fun startCycle(n: Int, offS: Int, onS: Int) {
+        if (cycleJob?.isActive == true) { app.activityLog.add(Cat.ERR, null, "사이클이 이미 실행 중 — 중단 뒤 다시", true); return }
+        val plan: List<CyclePlan.Step> = runCatching { CyclePlan.plan(n, offS.toDouble(), onS.toDouble()) }
+            .getOrElse { app.activityLog.add(Cat.ERR, null, "사이클 설정 오류: ${it.message}", true); return }
+        if (!advertiser.isStarted) { app.activityLog.add(Cat.ERR, null, "광고가 송출 중이 아니라 사이클을 시작할 수 없음 — 먼저 \"시작\"", true); return }
+        val stopStart: Boolean = settingsSnap?.debugCycleStopStart == true
+        val ttl: Int = settingsSnap?.nonceTtlS ?: 30
+        app.activityLog.add(Cat.CYCLE, null, "사이클 시작 — ${n}회 · OFF ${offS}s · ON ${onS}s · ttl ${ttl}s · ${if (stopStart) "stop/start (디버그, 새 주소)" else "enableAdvertising (set·주소 유지)"}", false)
+        if (CyclePlan.belowSuppression(offS, onS)) app.activityLog.add(Cat.CYCLE, null, "OFF+ON = ${offS + onS}s < ${CyclePlan.SUPPRESSION_S}s — 손님 앱 60초 억제에 걸릴 수 있음", true)
+        trial.begin(n)
+        val runner = CycleRunner(
+            doStop = { if (stopStart) advertiser.stop() else check(advertiser.enable(false)) { "enableAdvertising(false) 거부 — set 없음" } },
+            doStart = {
+                val t0 = System.currentTimeMillis()
+                if (stopStart) startAll() else check(advertiser.enable(true)) { "enableAdvertising(true) 거부 — set 없음" }
+                startedSince = t0
+            },
+            waitStarted = { waitPublisherStarted(startedSince) },
+            onStep = { step ->
+                val now = System.currentTimeMillis()
+                if (step.action == CyclePlan.Action.STOP) trial.onStop(step.k, now) else trial.onStart(step.k, now, onS)
+            },
+            log = { m, bad -> app.activityLog.add(if (bad) Cat.ERR else Cat.CYCLE, null, m, bad) },
+        )
+        cycleRunner = runner
+        cycleJob = scope.launch {
+            val ticker: Job = launch { while (true) { publish(); delay(1_000L) } }
+            val result: CycleRunner.Result = try { runner.run(plan) } finally { ticker.cancel() }
+            trial.end()
+            if (result.cancelled) {
+                app.activityLog.add(Cat.CYCLE, null, "중단 — ${result.stoppedAtK ?: 0}/$n 에서", true)
+                if (!advertiser.isStarted && advertiser.isSetAlive) advertiser.enable(true) // OFF 에서 끊겼으면 광고 복구
+            }
+            app.activityLog.add(Cat.CYCLE, null, trial.summary(result.stoppedAtK), false)
+            delay(300L) // 마지막 콜백이 로그에 들어올 여유
+            saveAll("사이클 종료", cycles = true)
+            cycleRunner = null
+            publish()
+        }
+        publish()
+    }
+
+    @Volatile private var startedSince: Long = 0L
+
+    /** `onAdvertisingSetStarted`/`onAdvertisingEnabled(true)` 가 [since] 이후에 왔는가 — 10초 한도 (CyclePlan.STARTED_TIMEOUT_MS) */
+    private suspend fun waitPublisherStarted(since: Long): Boolean = withTimeoutOrNull(CyclePlan.STARTED_TIMEOUT_MS) {
+        advertiser.state.first { it is PosAdvertiser.State.Started && it.sinceWallMs >= since }
+    } != null
+
+    private suspend fun stopCycle(why: String) {
+        val job = cycleJob ?: return
+        if (!job.isActive) return
+        app.activityLog.add(Cat.CYCLE, null, "$why — 사이클 중단 요청", false)
+        job.cancel()
+        job.join()
+    }
+
+    // ── 로그 ───────────────────────────────────────────────────────────
 
     private fun onReceived(r: EventsCsv.Received) {
         val tagged: EventsCsv.Received = trial.attach(r)
@@ -174,11 +248,12 @@ class PosService : Service() {
     }
 
     /** events·Activity Log (·cycles) 저장 — 상대 FAQ Q14 제안대로 주기 자동 저장도 같은 경로 */
-    private fun saveAll(why: String) {
+    private fun saveAll(why: String, cycles: Boolean = trial.rows.isNotEmpty()) {
         runCatching {
             val e = LogExport.saveEvents(this, app.events.csv())
+            val c = if (cycles) LogExport.saveCycles(this, EventsCsv.serializeCycles(trial.rows)) else null
             val p = LogExport.saveActivity(this, app.activityLog.text())
-            app.activityLog.add(Cat.GATT, null, "$why 저장 → ${e.name} · ${p.name}", false)
+            app.activityLog.add(Cat.GATT, null, "$why 저장 → ${listOfNotNull(e, c, p).joinToString(" · ") { it.name }}", false)
         }.onFailure { app.activityLog.add(Cat.ERR, null, "저장 실패 ${it.javaClass.simpleName}: ${it.message}", true) }
     }
 
@@ -215,6 +290,7 @@ class PosService : Service() {
             adv = advertiser.state.value, gatt = server.state.value, sessions = sessions.sessions.value.values.toList(),
             connectedCount = sessions.connectedCount, issuedCount = nonces.issuedCount,
             acceptedCount = server.acceptedCount, rejectedCount = server.rejectedCount, payload = advertiser.payload,
+            cycle = cycleRunner?.progress(),
         )
         if (_running.value) runCatching { getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, buildNotification()) }
     }
@@ -229,6 +305,8 @@ class PosService : Service() {
         val acceptedCount: Int = 0,
         val rejectedCount: Int = 0,
         val payload: ByteArray? = null,
+        /** ① 사이클 진행 줄. 안 돌면 null */
+        val cycle: CyclePlan.Progress? = null,
     )
 
     companion object {
@@ -236,6 +314,9 @@ class PosService : Service() {
         private const val NOTIFICATION_ID = 1
         const val ACTION_STOP_ADV = "dev.mcandle.uwbpos.action.STOP_ADV"
         const val ACTION_SAVE = "dev.mcandle.uwbpos.action.SAVE"
+        const val ACTION_CYCLE_START = "dev.mcandle.uwbpos.action.CYCLE_START"
+        const val ACTION_CYCLE_STOP = "dev.mcandle.uwbpos.action.CYCLE_STOP"
+        const val EXTRA_N = "n"; const val EXTRA_OFF_S = "off_s"; const val EXTRA_ON_S = "on_s"
         const val BT_ON_SETTLE_MS: Long = 1_000L
         const val AUTOSAVE_MS: Long = 5 * 60_000L
 
@@ -248,5 +329,9 @@ class PosService : Service() {
         fun stopAdvertising(context: Context) { context.startForegroundService(Intent(context, PosService::class.java).setAction(ACTION_STOP_ADV)) }
         fun save(context: Context) { context.startForegroundService(Intent(context, PosService::class.java).setAction(ACTION_SAVE)) }
         fun stop(context: Context) { context.stopService(Intent(context, PosService::class.java)) }
+        fun startCycle(context: Context, n: Int, offS: Int, onS: Int) {
+            context.startForegroundService(Intent(context, PosService::class.java).setAction(ACTION_CYCLE_START).putExtra(EXTRA_N, n).putExtra(EXTRA_OFF_S, offS).putExtra(EXTRA_ON_S, onS))
+        }
+        fun stopCycle(context: Context) { context.startForegroundService(Intent(context, PosService::class.java).setAction(ACTION_CYCLE_STOP)) }
     }
 }

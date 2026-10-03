@@ -81,7 +81,7 @@ uv run tools/pair_logs.py <이 리포 docs/logs/events_…_S2.csv> <손님 앱 d
 
 ### 사이클 (시뮬레이터 spec 002 T22 동등)
 ① 패널(T5 뒤) 또는 디버그 메뉴에서 N=10 · OFF 15 · ON 45. 손님 앱 화면 OFF.
-- [ ] `CYCLE k/10 stop|start` 로그, events `cycle` 열 1..10, `cycles_*.csv` 10행. `late write` 유무. 로그 `_CYC`
+- [x] `CYCLE k/10 stop|start` 로그, events `cycle` 열 1..10, `cycles_*.csv` 10행. `late write` 유무. 로그 `_CYC` — 2026-10-04 00:49:36~00:59:43, `enableAdvertising` 모드. `CYCLE done 10/10 · writes 1 · no-write [1,2,3,4,5,6,7,8,9]`, late write 없음. 세 파일 자동 저장 확인(`events`·`cycles`·`pos` `_005943`). **손님 앱은 사이클 1~9 에 발화하지 않았고 10 에서만 1건**(00:59:10, adv_to_write 13.3 s) — 아래 §2 사이클 해석
 
 ### P2 — 주소 회전 24h (D-004)
 POS 광고를 24시간 켜 두고 손님 앱을 옆에 둔다(화면 OFF, 충전).
@@ -123,6 +123,17 @@ POS 광고를 24시간 켜 두고 손님 앱을 옆에 둔다(화면 OFF, 충전
 
 - POS set 은 00:18:23 에 만들어졌고(E1 때 손님 앱이 본 주소 `6D:45:35:81:7E:2E`) 광고는 끊긴 적이 없다. 그런데 **00:26:28** 손님 앱이 새 주소 `6F:A9:6F:B9:AC:40` 에 `wake FIRST_MATCH`(화면 OFF 253 s) 로 깨어나 **자동 전송**(F1, nonce 96BDFF2C, `wake_to_ack_ms=1808`), 00:26:36 에 옛 주소 `6D:45…` 로 `MATCH_LOST`.
 - 즉 **RPA 가 set 생성 ≤8 분 뒤에 바뀌었고, 손님 앱은 그걸 새 POS 로 보고 재전송했다** — 시뮬레이터에서 보던 "15분 재전송" 이 Android POS 에서도 난다(D-004 예상대로). 회전 주기는 P2 24h 로 잰다. 손님 앱 005 억제 키(Major/Minor) 논의의 첫 실측.
+
+### 사이클 — 2026-10-04 00:49 (N=10 · OFF 15 · ON 45, `enableAdvertising`)
+
+| cycle | stop_at | adv_started_at | writes | adv_to_first_write_s |
+|---|---|---|---|---|
+| 1~9 | 00:49:36 … 00:57:43 | +15.0~15.6 s 뒤 | **0** | — |
+| 10 | 00:58:43.339 | 00:58:58.403 | 1 (B1, nonce C9FE27E1) | 13.262 |
+
+- 실행기 자체는 정확하다: stop→start 15.0~15.6 s, `onAdvertisingEnabled` 콜백 40~50 ms, late write 없음. 사이클 6→7·7→8 사이 ON 이 45 → 47.7 s 로 늘었다(`delay` 지연 — 화면 OFF 뒤 Dispatchers.Default 스로틀 추정). 측정은 CSV 의 실제 시각을 쓰므로 영향 없음.
+- **손님 앱이 같은 주소의 OFF 15 s / ON 45 s 에 재발화하지 않았다.** 직전 전송은 00:46:04(재설치 → 새 set → FIRST_MATCH). 사이클 10 의 1건은 00:59:10 — 직전 전송 13 분 뒤. 두 가설: (a) 손님 앱 STICKY 가 OFF 15 s 안에 `MATCH_LOST` 를 안 낸다, (b) 손님 앱이 같은 주소에 ≈13~15 분 억제를 건다(004 "15분 재전송"). 또는 (c) 00:59 에 RPA 가 회전해(set 생성 00:46 → 13 분) 새 주소로 FIRST_MATCH 가 난 것 — S9 직전 관찰(8 분)과 같은 패턴. **손님 앱 CSV 의 `detect` 주소·`wake`/`MATCH_LOST` 행으로 가른다.**
+- 시뮬레이터 사이클(주소가 바뀌는 2개 광고)과 달리 Android `enableAdvertising` 사이클은 **같은 주소**라 "재진입" 이 안 된다 → 손님 앱 005 에서 억제 키·MATCH_LOST 조건을 정할 때 이 run 이 기준. 비교용으로 디버그 "사이클을 stop/start 로"(새 주소) run 이 다음 항목.
 
 ## 3. 상대 리포에 넘길 것 (실측 후, T22)
 
