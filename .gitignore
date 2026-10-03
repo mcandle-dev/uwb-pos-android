@@ -1,0 +1,14 @@
+.gradle/
+build/
+*/build/
+local.properties
+.idea/
+*.iml
+.DS_Store
+.kotlin/
+# docs/logs/ 는 검증 증거다 — spec Acceptance와 PEERS.md가 여기 남기라고 지정한다. 추적한다
+/logs/
+captures/
+*.apk
+*.aab
+*.hprof
