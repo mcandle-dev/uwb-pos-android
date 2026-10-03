@@ -6,7 +6,7 @@ spec: [spec.md](spec.md) · plan: [plan.md](plan.md) · 승인 2026-10-03. 완�
 
 ## 0. 골격
 
-- [ ] T0. 리포 `mcandle-dev/uwb-pos-android` 생성 · `_reference_console/` 서브모듈 · constitution/CLAUDE/PEERS/KICKOFF/README/CHANGELOG · docs 4종 · specs/001 3종 · Gradle 골격(손님 앱 복사, core-uwb 제외, minSdk 30) · 매니페스트 권한 매트릭스 · `App`·`MainActivity`·`PosService`·`BootReceiver` 스텁 · `.claude/skills`·`agents` → `:app:assembleDebug`
+- [x] T0. 리포 `mcandle-dev/uwb-pos-android` 생성 · `_reference_console/` 서브모듈 · constitution/CLAUDE/PEERS/KICKOFF/README/CHANGELOG · docs 4종 · specs/001 3종 · Gradle 골격(손님 앱 복사, core-uwb 제외, minSdk 30) · 매니페스트 권한 매트릭스 · `App`·`MainActivity`·`PosService`·`BootReceiver` 스텁 · `.claude/skills`·`agents` → `:app:assembleDebug` (d93a17a)
 
 ## 1. 순수 함수 — 테스트 먼저 (plan 1)
 
