@@ -1,0 +1,46 @@
+01:02:56.904  GATT  —   service advertising started — 3 chars (nonce/payload/result), connectable
+01:02:56.912  ADV   —   start 요청 iBeacon 23B major=1 minor=257 tx=-59 — 상태는 콜백으로 확인
+01:02:56.936  ADV   —   publisher started (AdvertisingSet 콜백 확인) — on-air 30B, Flags 스택, connectable, tx -2 dBm, interval 160×0.625ms
+01:02:59.050  CONN  A1  connected 50:DF:B0:9C:F5:54 · 세션 생성
+01:02:59.705  GATT  A1  MTU 512
+01:02:59.750  GATT  A1  result notify 구독
+01:02:59.852  NONCE A1  read → 7CBC5C81 (ttl 30s)
+01:02:59.878  GATT  A1  write 16B member=1111222200 uwb=E6:68 nonce=7CBC5C81 → 수락 (nonce 일치 (발급 후 0.079s))
+01:02:59.966  LOOK  A1  lookup → {"v":1,"status":"success","member":"김**트","message":"mock"} (61.0 ms) · notified=true
+01:03:01.176  CONN  A1  disconnected · 세션 폐기
+01:08:01.672  GATT  —   자동 저장 → events_20261004_010801.csv · pos_20261004_010801.txt
+01:13:11.555  GATT  —   자동 저장 → events_20261004_011311.csv · pos_20261004_011311.txt
+01:13:54.375  CYCLE —   사이클 시작 — 3회 · OFF 15s · ON 45s · ttl 30s · stop/start (디버그, 새 주소)
+01:13:54.390  CYCLE —   1/3 stop
+01:13:54.395  ADV   —   stop 요청 (set 종료)
+01:13:54.481  ADV   —   publisher stopped (set 종료)
+01:14:09.413  CYCLE —   1/3 start
+01:14:09.425  ADV   —   start 요청 iBeacon 23B major=1 minor=257 tx=-59 — 상태는 콜백으로 확인
+01:14:09.500  ADV   —   publisher started (AdvertisingSet 콜백 확인) — on-air 30B, Flags 스택, connectable, tx -2 dBm, interval 160×0.625ms
+01:14:13.423  CONN  B1  connected 57:34:B1:EA:3C:89 · 세션 생성
+01:14:14.069  GATT  B1  MTU 512
+01:14:14.122  GATT  B1  result notify 구독
+01:14:14.172  NONCE B1  read → 2B9924AD (ttl 30s)
+01:14:14.248  GATT  B1  write 16B member=1111222200 uwb=D8:D7 nonce=2B9924AD → 수락 (nonce 일치 (발급 후 0.079s))
+01:14:14.336  LOOK  B1  lookup → {"v":1,"status":"success","member":"김**트","message":"mock"} (52.0 ms) · notified=true
+01:14:15.521  CONN  B1  disconnected · 세션 폐기
+01:14:54.505  CYCLE —   2/3 stop
+01:14:54.516  ADV   —   stop 요청 (set 종료)
+01:14:54.537  ADV   —   publisher stopped (set 종료)
+01:15:09.536  CYCLE —   2/3 start
+01:15:09.548  ADV   —   start 요청 iBeacon 23B major=1 minor=257 tx=-59 — 상태는 콜백으로 확인
+01:15:09.633  ADV   —   publisher started (AdvertisingSet 콜백 확인) — on-air 30B, Flags 스택, connectable, tx -2 dBm, interval 160×0.625ms
+01:15:54.638  CYCLE —   3/3 stop
+01:15:54.648  ADV   —   stop 요청 (set 종료)
+01:15:54.681  ADV   —   publisher stopped (set 종료)
+01:16:09.664  CYCLE —   3/3 start
+01:16:09.677  ADV   —   start 요청 iBeacon 23B major=1 minor=257 tx=-59 — 상태는 콜백으로 확인
+01:16:09.762  ADV   —   publisher started (AdvertisingSet 콜백 확인) — on-air 30B, Flags 스택, connectable, tx -2 dBm, interval 160×0.625ms
+01:16:11.650  CONN  C1  connected 58:0B:9E:1F:4C:E9 · 세션 생성
+01:16:12.316  GATT  C1  MTU 512
+01:16:12.359  GATT  C1  result notify 구독
+01:16:12.400  NONCE C1  read → CC352100 (ttl 30s)
+01:16:12.477  GATT  C1  write 16B member=1111222200 uwb=C9:8D nonce=CC352100 → 수락 (nonce 일치 (발급 후 0.076s))
+01:16:12.564  LOOK  C1  lookup → {"v":1,"status":"success","member":"김**트","message":"mock"} (53.0 ms) · notified=true
+01:16:13.719  CONN  C1  disconnected · 세션 폐기
+01:16:54.771  CYCLE —   CYCLE done 3/3 · writes 2 · no-write [2]
