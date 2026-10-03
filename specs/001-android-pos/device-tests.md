@@ -132,7 +132,12 @@ POS 광고를 24시간 켜 두고 손님 앱을 옆에 둔다(화면 OFF, 충전
 | 10 | 00:58:43.339 | 00:58:58.403 | 1 (B1, nonce C9FE27E1) | 13.262 |
 
 - 실행기 자체는 정확하다: stop→start 15.0~15.6 s, `onAdvertisingEnabled` 콜백 40~50 ms, late write 없음. 사이클 6→7·7→8 사이 ON 이 45 → 47.7 s 로 늘었다(`delay` 지연 — 화면 OFF 뒤 Dispatchers.Default 스로틀 추정). 측정은 CSV 의 실제 시각을 쓰므로 영향 없음.
-- **손님 앱이 같은 주소의 OFF 15 s / ON 45 s 에 재발화하지 않았다.** 직전 전송은 00:46:04(재설치 → 새 set → FIRST_MATCH). 사이클 10 의 1건은 00:59:10 — 직전 전송 13 분 뒤. 두 가설: (a) 손님 앱 STICKY 가 OFF 15 s 안에 `MATCH_LOST` 를 안 낸다, (b) 손님 앱이 같은 주소에 ≈13~15 분 억제를 건다(004 "15분 재전송"). 또는 (c) 00:59 에 RPA 가 회전해(set 생성 00:46 → 13 분) 새 주소로 FIRST_MATCH 가 난 것 — S9 직전 관찰(8 분)과 같은 패턴. **손님 앱 CSV 의 `detect` 주소·`wake`/`MATCH_LOST` 행으로 가른다.**
+- **손님 앱이 같은 주소의 OFF 15 s / ON 45 s 에 재발화하지 않았다 — 손님 앱 CSV(`app_20261004_010035.csv`)로 확정:**
+  - 00:46:02 `FIRST_MATCH` @ `7F:ED:30:2D:4E:1F`(재설치로 생긴 새 set) → 전송. 00:46:05 옛 주소 `50:C0…` `MATCH_LOST`.
+  - **00:49:47 `MATCH_LOST` @ `7F:ED…`** — 사이클 1 stop(00:49:36.9) **10.4 s 뒤**. STICKY 는 OFF 15 s 안에 잃는다 → 가설 (a) 기각.
+  - 00:49:52 start 뒤 같은 주소 `7F:ED…` 가 45 s 씩 9 번 다시 나왔지만 **`FIRST_MATCH` 도 `MATCH_LOST` 도 한 번도 없다** (손님 앱은 PendingIntent 콜백마다 `wake` 행을 남기므로 OS 가 안 보낸 것). 손님 앱 억제가 아니라 **스캐너가 한 번 잃은 주소를 다시 FIRST_MATCH 로 올리지 않는다** → 가설 (b) 는 "앱 억제" 가 아니라 "OS 스캐너 동작".
+  - 00:59:10 `FIRST_MATCH` @ **새 주소 `47:E9:10:3E:49:62`** → 전송(사이클 10 의 1건). set 생성 00:46:00 → RPA 회전 ≤13 분 → 가설 (c) 확정. 00:18 set 도 ≤8 분에 바뀌었다 — RPA 타이머(≈15 분)는 set 생성과 무관하게 돈다.
+  - 결론: **Android POS 가 `enableAdvertising` 으로 OFF/ON 하면(주소 유지) SM-S928N 손님 앱은 재진입을 못 본다. 깨우는 건 주소 변경(새 set 또는 RPA 회전)뿐.** 손님 앱 005 의 핵심 입력 — MATCH_LOST 뒤 스캔 재등록(PendingIntent 재시작) 또는 Major/Minor 키 등으로 해결해야 한다. 사이클 OFF/ON 실측 매트릭스는 손님 앱이 이걸 고친 뒤에 의미가 있다.
 - 시뮬레이터 사이클(주소가 바뀌는 2개 광고)과 달리 Android `enableAdvertising` 사이클은 **같은 주소**라 "재진입" 이 안 된다 → 손님 앱 005 에서 억제 키·MATCH_LOST 조건을 정할 때 이 run 이 기준. 비교용으로 디버그 "사이클을 stop/start 로"(새 주소) run 이 다음 항목.
 
 ## 3. 상대 리포에 넘길 것 (실측 후, T22)
@@ -144,6 +149,7 @@ POS 광고를 24시간 켜 두고 손님 앱을 옆에 둔다(화면 OFF, 충전
 | 주소 회전 — "Android POS 는 고정" 정정 | P2 | PROTOCOL §4-1 부기 · FAQ Q11 |
 | `elapsed_s`/`session_opened_at` = 연결 기준 (D-003) | S1 | FAQ Q12 부기 |
 | 연결 중 광고 자동 재개 여부 (D-007) | P1 | FAQ |
+| 같은 주소 재진입은 FIRST_MATCH 가 안 온다(STICKY MATCH_LOST 10 s 뒤에도) · RPA 회전 ≤8~13 분 | 사이클 `_CYC` · `app_20261004_010035.csv` | 손님 앱 005 spec(스캔 재등록·억제 키) · PROTOCOL §4-1 부기 |
 
 ## 4. 시험 뒤 Claude 에게 알려줄 것 — 보고 양식
 

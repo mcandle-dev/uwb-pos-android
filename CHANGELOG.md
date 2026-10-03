@@ -12,7 +12,7 @@
 
 ### Verified (SM-G977N, 00:49~00:59)
 - `CYCLE done 10/10 · writes 1 · no-write [1..9]`, cycles CSV 10행, events `cycle=10`·`adv_to_write_s 13.262`, late write 없음. stop→start 15.0~15.6 s, `onAdvertisingEnabled` 40~50 ms.
-- 손님 앱은 같은 주소의 OFF 15/ON 45 에 재발화하지 않았다(10 번째만 1건, 직전 전송 13 분 뒤) — 손님 앱 CSV 로 원인 분리 예정 (device-tests §2 사이클).
+- **같은 주소 재진입은 손님 폰이 못 본다**: 사이클 1 stop 10.4 s 뒤 `MATCH_LOST` 는 왔지만 start 뒤 같은 주소에 `FIRST_MATCH` 가 9 번 모두 안 왔다(OS 스캐너). 10 번째의 1건은 RPA 회전(≤13 분)으로 생긴 **새 주소**에 대한 `FIRST_MATCH`. → 손님 앱 005 의 핵심 입력(MATCH_LOST 뒤 스캔 재등록 등). device-tests §2 사이클.
 
 ## 2026-10-03 — T14 3패널 화면 · events `result` 열이 비던 결함 수정 (실기기 SM-G977N)
 

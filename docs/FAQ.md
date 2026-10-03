@@ -43,3 +43,8 @@ Activity Log ERR과 함께 보고한다. 디스크립터 READ(CCCD 읽기)·`onE
 ## Q8. logcat 으로 Activity Log 를 볼 때 ERR 줄이 안 보인다
 
 `ActivityLog.add(bad=true)` 는 `Log.w`, 나머지는 `Log.i` 로 나간다. `grep "I PosActivity"` 처럼 레벨까지 걸면 ERR 가 빠진다 — `grep PosActivity` 만 쓰거나 저장 파일(`pos_*.txt`)을 본다 (2026-10-04 S10 에서 ERR 0x80 줄을 놓칠 뻔했다).
+
+## Q9. 사이클을 돌려도 손님 폰이 안 깨어난다
+
+`enableAdvertising` OFF/ON 은 **주소를 유지**한다(D-005). 2026-10-04 실측: 손님 폰(SM-S928N)은 OFF 10 s 뒤 `MATCH_LOST` 를 내지만, 같은 주소가 다시 나와도 `FIRST_MATCH` 를 **다시 주지 않는다** — 9 사이클 연속. 깨어난 건 RPA 가 회전해 **새 주소**가 됐을 때뿐(≤8~13 분).
+POS 결함이 아니라 Android 스캐너(STICKY + PendingIntent) 동작이고, 해결은 손님 앱 쪽(005: MATCH_LOST 뒤 스캔 재등록 또는 억제 키)이다. 당장 사이클마다 깨우려면 디버그 "사이클을 stop/start 로"(새 set = 새 주소)를 켠다 — 단 이건 실제 POS 운영 조건이 아니다.
