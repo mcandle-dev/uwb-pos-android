@@ -33,6 +33,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    testOptions {
+        unitTests.isReturnDefaultValues = true // android.util.Log 등을 JVM 테스트에서 no-op 으로 (EventsStoreTest)
+    }
     buildFeatures {
         compose = true
         buildConfig = true // D-009 — 디버그 토글은 BuildConfig.DEBUG 에서만

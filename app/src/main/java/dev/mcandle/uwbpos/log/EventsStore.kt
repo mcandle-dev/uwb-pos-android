@@ -15,8 +15,13 @@ class EventsStore(private val log: ActivityLog) {
 
     fun add(r: EventsCsv.Received) { _events.update { it + r } }
 
-    /** 조회 결과가 뒤늦게 채워진다 — 같은 (wallMs, sessionKey) 행을 교체 */
-    fun replace(r: EventsCsv.Received) { _events.update { list -> list.map { if (it.wallMs == r.wallMs && it.sessionKey == r.sessionKey) r else it } } }
+    /**
+     * 조회 결과가 뒤늦게 채워진다 — 같은 (wallMs, sessionKey) 행에 `resultJson` 만 병합한다.
+     * 행 전체를 바꾸면 `TrialState.attach` 가 붙인 `cycle`·`advStartedWallMs` 가 사라진다 (2026-10-03 실기기: `adv_started_at` 빈칸).
+     */
+    fun replace(r: EventsCsv.Received) {
+        _events.update { list -> list.map { if (it.wallMs == r.wallMs && it.sessionKey == r.sessionKey) it.copy(resultJson = r.resultJson) else it } }
+    }
 
     fun clear() {
         val n: Int = _events.value.size

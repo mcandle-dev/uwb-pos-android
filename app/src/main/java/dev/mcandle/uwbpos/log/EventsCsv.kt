@@ -53,10 +53,9 @@ object EventsCsv {
         val advStartedWallMs: Long? = null,
         /** 사이클 번호 — TrialState 가 채움. 수동이면 null */
         val cycle: Int? = null,
-    ) {
-        override fun equals(other: Any?): Boolean = other is Received && wallMs == other.wallMs && sessionKey == other.sessionKey && raw.contentEquals(other.raw)
-        override fun hashCode(): Int = wallMs.hashCode() * 31 + raw.contentHashCode()
-    }
+    )
+    // equals 를 (wallMs, sessionKey, raw) 로 재정의하지 말 것 — `EventsStore.replace` 가 resultJson 만 바꾼 목록을
+    // `MutableStateFlow` 가 "같은 값" 으로 보고 버려서 result 열이 영원히 비었다 (2026-10-03 실기기). 기본 data class 동등성을 쓴다.
 
     /** 사이클 1회의 요약 — `trial_state.py CycleRow` */
     data class CycleRow(
