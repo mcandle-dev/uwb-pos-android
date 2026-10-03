@@ -58,7 +58,7 @@ app/                 단일 모듈 Kotlin/Compose
 - `PosAdvertiser` 는 연결 콜백에서 호출되지 않는다. `PosService.onPhoneConnected` 는 D-007 토글일 때만 `enable(true)`.
 - `EventsCsv.HEADER` 문자열·`ActivityLine.text()` 포맷은 테스트가 잠궜다. 바꾸면 `pair_logs.py` 가 깨진다.
 - `ResultJson` 은 `org.json` 을 쓰지 않는다(이스케이프 차이). `EventsCsv` 소수는 `Locale.US`.
-- `_reference_console/` 안에서 커밋 금지. 소스에 BOM 문자를 리터럴로 넣지 말 것(lint `ByteOrderMark` 에러 — `'﻿'` 이스케이프로).
+- `_reference_console/` 안에서 커밋 금지. 소스에 BOM 문자를 리터럴로 넣지 말 것(lint `ByteOrderMark` 에러 — `'\uFEFF'` 이스케이프로).
 
 ### 손님 앱 쪽에서 기다리는 것
 - `uwb-member-app/specs/005-android-pos-verify` 는 **아직 없다**. 이 리포 S1·S2 가 되면 손님 앱 세션에서 `/sdd-new-spec` 으로 만든다 (HANDOFF §4 005 행에 범위 적어 둠).
